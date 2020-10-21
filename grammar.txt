@@ -1,0 +1,21 @@
+program OP CP OCB LIST_STAT CCB
+var_declaration declare var_name COLON type SEMI_COLON
+var_declaration declare list of variables LIST_VAR_NAME COLON type SEMI_COLON
+LIST_VAR_NAME var_name LIST_VAR_NAME | var_name var_name
+type INTEGER | BOOLEAN | REAL
+rect_array_declaration declare list of variables LIST_VAR_NAME COLON array LIST_DIM of type SEMI_COLON
+rect_array_declaration declare var_name COLON array LIST_DIM of type SEMI_COLON
+LIST_DIM SO r1 .. r1 SC LIST_DIM | SO r1 .. r1 SC
+r1 NUM | var_name
+jag_array_declaration jag_array_nam JAG_ARRAY_INITIALISATION
+jag_array_nam declare list of variables LIST_VAR_NAME COLON jagged array SO r1 .. r1 SC LIST_SB of type SEMI_COLON
+jag_array_nam declare var_name COLON jagged array SO r1 .. r1 SC LIST_SB of type SEMI_COLON
+LIST_SB SO SC | SO SC SO SC
+JAG_ARRAY_INITIALISATION R1 SO NUM SC COLON size NUM COLON OCB LIST_INT CCB JAG_ARRAY_INITIALISATION | R1 SO NUM SC COLON size NUM COLON OCB LIST_INT CCB
+LIST_INT_SEMICOL LIST_INT_SPACES SEMI_COLON LIST_INT_SEMICOL | LIST_INT_SPACES
+LIST_INT_SPACES NUM LIST_INT_SPACES | NUM
+assignment_state element EQUAL_TO element 
+assignment_state element EQUAL_TO logical_state 
+assignment_state element EQUAL_TO arithmetic_state 
+element var_name | array_ident SO LIST_INT_SPACES SC
+arar
