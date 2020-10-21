@@ -1,43 +1,38 @@
-program OP CP OCB list_state CCB
+start PROGRAM_NAME OP CP OCB list_state CCB
 
-var_declaration DECLARE var_name COLON type SEMI_COLON
+var_declaration DECLARE VAR_NAME COLON type SEMI_COLON
 var_declaration DECLARE LIST OF VARIABLES list_var_name COLON type SEMI_COLON
 
-list_var_name var_name list_var_name
-list_var_name var_name var_name
+list_var_name VAR_NAME list_var_name
+list_var_name VAR_NAME 
 
 type INTEGER
 type BOOLEAN
 type REAL
 
 rect_array_declaration DECLARE LIST OF VARIABLES list_var_name COLON ARRAY list_dim of type SEMI_COLON
-rect_array_declaration DECLARE var_name COLON ARRAY list_dim of type SEMI_COLON
+rect_array_declaration DECLARE VAR_NAME COLON ARRAY list_dim of type SEMI_COLON
 
-list_dim SO r1 .. r1 SC list_dim
-list_dim SO r1 .. r1 SC
+list_dim SO r1 DOUBLE_DOT r1 SC list_dim
+list_dim SO r1 DOUBLE_DOT r1 SC
 
 r1 NUM
-r1 var_name
+r1 VAR_NAME
 
 jag_array_declaration jag_array_nam jag_array_initialisation
-jag_array_nam DECLARE LIST OF VARIABLES list_var_name COLON jagged ARRAY SO r1 .. r1 SC list_SB of type SEMI_COLON
-jag_array_nam DECLARE var_name COLON jagged ARRAY SO r1 .. r1 SC list_SB of type SEMI_COLON
+jag_array_nam DECLARE LIST OF VARIABLES list_var_name COLON JAGGED ARRAY SO r1 .. r1 SC list_SB of type SEMI_COLON
+jag_array_nam DECLARE VAR_NAME COLON JAGGED ARRAY SO r1 .. r1 SC list_SB of type SEMI_COLON
 
 list_SB SO SC 
 list_SB SO SC SO SC
 
-jag_array_initialisation R1 SO NUM SC COLON SIZE NUM COLON VALUES OCB LIST_INT CCB jag_array_initialisation
-jag_array_initialisation R1 SO NUM SC COLON SIZE NUM COLON VALUES OCB LIST_INT CCB
+jag_array_initialisation r1 SO NUM SC COLON SIZE NUM COLON VALUES OCB LIST_INT CCB jag_array_initialisation
+jag_array_initialisation r1 SO NUM SC COLON SIZE NUM COLON VALUES OCB LIST_INT CCB
 
 list_int_semicol list_int_spaces SEMI_COLON list_int_semicol 
 list_int_semicol list_int_spaces
-list_int_spaces NUM list_int_spaces
-list_int_spaces NUM
 
-assignment_state element EQUAL_TO expression
-
-element var_name
-element array_ident SO list_int_spaces SC
+element VAR_NAME SO list_int_spaces SC
 
 expression sum_expression
 expression or_logical_expression
@@ -57,10 +52,14 @@ or_logical_expression or_logical_expression LOGICAL_OR_OP and_logical_expression
 or_logical_expression and_logical_expression
 and_logical_expression and_logical_expression LOGICAL_AND_OP element
 
-statement declarative_state
-statement assignment_state
-
 declarative_state var_declaration 
 declarative_state rect_array_declaration
 declarative_state jag_array_declaration
 
+list_state list_dec_state list_assign_state
+
+list_dec_state list_dec_state declarative_state
+list_dec_state declarative_state
+
+list_assign_state list_assign_state assignment_state
+list_assign_state assignment_state
