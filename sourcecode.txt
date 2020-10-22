@@ -1,0 +1,6 @@
+program()
+{
+    declare v1 : integer ;
+    declare v2 : integer ;
+    v1 = v1 + v2 ;
+}

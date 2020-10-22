@@ -3,6 +3,7 @@
 #define NUM_RULES 44
 #define MAX_SIZE 25
 
+
 int isTerminal(const char* word) {
     if ('a' <= word[0] && word[0] <= 'z')
         return 0;

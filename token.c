@@ -1,6 +1,7 @@
 #include "token.h"
 #define MAX_SIZE 20
 
+
 char* known_symbols[] = {
     "(",
     ")",

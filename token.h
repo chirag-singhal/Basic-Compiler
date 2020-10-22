@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 
 typedef enum {
     OP,
@@ -38,7 +41,7 @@ struct tokenNode {
 
 typedef struct tokenStr {
     struct tokenNode* token;
-    struct tokenNode* next;
+    struct tokenStr* next;
 } tokenStream;
 
 extern int getToken(char* word);
