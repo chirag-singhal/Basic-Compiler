@@ -1,4 +1,4 @@
-start PROGRAM_NAME OP CP OCB list_state CCB
+start PROGRAM OP CP OCB list_state CCB
 var_declaration DECLARE VAR_NAME COLON type SEMI_COLON
 var_declaration DECLARE LIST OF VARIABLES list_var_name COLON type SEMI_COLON
 list_var_name VAR_NAME list_var_name
@@ -13,8 +13,8 @@ list_dim SO r1 DOUBLE_DOT r1 SC
 r1 NUM
 r1 VAR_NAME
 jag_array_declaration jag_array_nam jag_array_initialisation
-jag_array_nam DECLARE LIST OF VARIABLES list_var_name COLON JAGGED ARRAY SO r1 .. r1 SC list_SB of type SEMI_COLON
-jag_array_nam DECLARE VAR_NAME COLON JAGGED ARRAY SO r1 .. r1 SC list_SB of type SEMI_COLON
+jag_array_nam DECLARE LIST OF VARIABLES list_var_name COLON JAGGED ARRAY SO r1 DOUBLE_DOTDOUBLE_DOT r1 SC list_SB of type SEMI_COLON
+jag_array_nam DECLARE VAR_NAME COLON JAGGED ARRAY SO r1 DOUBLE_DOTDOUBLE_DOT r1 SC list_SB of type SEMI_COLON
 list_SB SO SC 
 list_SB SO SC SO SC
 jag_array_initialisation r1 SO NUM SC COLON SIZE NUM COLON VALUES OCB LIST_INT CCB jag_array_initialisation
@@ -31,9 +31,9 @@ sum_op SUB
 mul_expression mul_expression mul_op element
 mul_op MUL
 mul_op DIV
-or_logical_expression or_logical_expression LOGICAL_OR_OP and_logical_expression
+or_logical_expression or_logical_expression LOGICAL_OR and_logical_expression
 or_logical_expression and_logical_expression
-and_logical_expression and_logical_expression LOGICAL_AND_OP element
+and_logical_expression and_logical_expression LOGICAL_AND element
 declarative_state var_declaration 
 declarative_state rect_array_declaration
 declarative_state jag_array_declaration
