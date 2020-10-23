@@ -4,8 +4,7 @@
 
 
 typedef enum {
-    OP,
-    CP,
+    OP_CP,
     OCB,
     CCB,
     SO,

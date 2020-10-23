@@ -1,4 +1,4 @@
-start PROGRAM OP CP OCB list_state CCB
+start PROGRAM OP_CP OCB list_state CCB
 var_declaration DECLARE VAR_NAME COLON type SEMI_COLON
 var_declaration DECLARE LIST OF VARIABLES list_var_name COLON type SEMI_COLON
 list_var_name VAR_NAME list_var_name
