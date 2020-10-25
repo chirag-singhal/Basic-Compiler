@@ -5,14 +5,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define NUM_TERMS 28
+#define NUM_NONTERMS 43
 
 typedef enum {
-    START,
-    OP_CP,
+    OP_CP,    
     OCB,
     CCB,
-    SO,
-    SC,
+    OSB,
+    CSB,
     COLON,
     SEMI_COLON,
     PROGRAM,
@@ -24,17 +25,65 @@ typedef enum {
     OF,
     ARRAY,
     JAGGED,
+    R1,
     VARIABLES,
     DOUBLE_DOT,
-    ADD,
-    SUB,
-    MUL,
-    DIV,
-    LOGICAL_OR,
-    LOGICAL_AND,
+    ADD_OP,
+    SUB_OP,
+    MUL_OP,
+    DIV_OP,
+    OR_LOGIC_OP,
+    AND_LOGIC_OP,
+    ASSIGN_OP,
     NUM,
-    VAR_NAME,
-} tokenid;
+    VAR_ID,
+} termid;
+
+typedef enum {
+    start,
+    stmts,
+    declarativeStmts,
+    assignmentStmts,
+    declarativeStmt,
+    declarativeStmtsOptional,
+    assignmentStmt,
+    assignmentStmtsOptional,
+    varDeclarePhrase,
+    specificDeclarativePhrase,
+    varOrListDeclare,
+    listVarId,
+    listVarIdOptional,
+    type,
+    primitiveDeclarativePhrase,
+    rectArrayDeclarativePhrase,
+    jaggedArrayDeclarativePhrase,
+    jaggedArrayInitialization,
+    listDim,
+    listDimOptional,
+    listEmptyDim,
+    listEmptyDimOptional,
+    index,
+    jaggedArrayInitializationPhrase,
+    jaggedArrayInitializationOptional,
+    listIntSemiColon,
+    listIntSemiColonOptional,
+    listInt,
+    listIntOptional,
+    element,
+    elementDimOptional,
+    expression,
+    orLogicExpression,
+    orLogicExpressionOptional,
+    andLogicExpression,
+    andLogicExpressionOptional,
+    addExpression,
+    addExpressionOptional,
+    mulExpression,
+    mulExpressionOptional,
+    addOps,
+    mulOps,
+    term
+} nontermid;
 
 struct tokenNode {
     int tokenID;
