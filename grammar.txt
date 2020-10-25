@@ -22,6 +22,7 @@ jag_array_initialisation r1 SO NUM SC COLON SIZE NUM COLON VALUES OCB LIST_INT C
 list_int_semicol list_int_spaces SEMI_COLON list_int_semicol 
 list_int_semicol list_int_spaces
 element VAR_NAME SO list_int_spaces SC
+expression element
 expression sum_expression
 expression or_logical_expression
 sum_expression sum_expression sum_op mul_expression
@@ -42,3 +43,4 @@ list_dec_state list_dec_state declarative_state
 list_dec_state declarative_state
 list_assign_state list_assign_state assignment_state
 list_assign_state assignment_state
+assignment_state element EQUAL_TO expression

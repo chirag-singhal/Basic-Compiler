@@ -1,3 +1,6 @@
+#ifndef GRAMMAR_H
+#define GRAMMAR_H
+
 #include<stdio.h>
 #include<string.h>
 #include <stdlib.h>
@@ -20,3 +23,5 @@ struct production_rule {
 typedef struct production_rule* grammar;
 
 extern void readGrammar(const char* filename, grammar G);
+
+#endif // GRAMMAR_H

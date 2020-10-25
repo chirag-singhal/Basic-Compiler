@@ -73,9 +73,10 @@ void tokeniseSourcecode( char* sourceCodeFileName, tokenStream *s) {
         
         while (token != NULL) {
             struct tokenNode* tokenNode = (struct tokenNode*)malloc(sizeof(struct tokenNode));
+            
             tokenNode -> tokenID = getToken(token);
-            tokenNode -> known_symbol = malloc(sizeof(char) * MAX_SIZE);
-            strcpy(tokenNode -> known_symbol, token);
+            tokenNode -> symbol = malloc(sizeof(char) * MAX_SIZE);
+            strcpy(tokenNode -> symbol, token);
             tokenNode -> lineNumber = line_num;
             tokenStream* next_s = (tokenStream*)malloc(sizeof(tokenStream));
             s -> next = next_s;

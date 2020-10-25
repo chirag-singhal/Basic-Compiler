@@ -1,9 +1,13 @@
+#ifndef TOKEN_H
+#define TOKEN_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 
 typedef enum {
+    START,
     OP_CP,
     OCB,
     CCB,
@@ -34,7 +38,7 @@ typedef enum {
 
 struct tokenNode {
     int tokenID;
-    char* known_symbol;
+    char* symbol;
     int lineNumber;
 };
 
@@ -46,3 +50,5 @@ typedef struct tokenStr {
 extern int getToken(char* word);
 
 extern void tokeniseSourcecode( char* sourceCodeFileName, tokenStream *s);
+
+#endif // TOKEN_H

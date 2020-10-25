@@ -42,5 +42,4 @@ void readGrammar(const char* filename, grammar G) {
             prev_rhs_rule = rhs_rule;
         }
     }
-    printf("Working! %s\n", G[10].head->next->next->next->next->next->next->next->word);
 }
