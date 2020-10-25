@@ -1,46 +1,65 @@
-start PROGRAM OP_CP OCB list_state CCB
-var_declaration DECLARE VAR_NAME COLON type SEMI_COLON
-var_declaration DECLARE LIST OF VARIABLES list_var_name COLON type SEMI_COLON
-list_var_name VAR_NAME list_var_name
-list_var_name VAR_NAME 
+start PROGRAM OP_CP OCB stmts CCB
+stmts declarativeStmts assignmentStmts
+declarativeStmts declarativeStmt declarativeStmtsOptional
+declarativeStmtsOptional EPSILON
+declarativeStmtsOptional declarativeStmt declarativeStmtsOptional
+assignmentStmts assignmentStmt assignmentStmtsOptional
+assignmentStmtsOptional EPSILON
+assignmentStmtsOptional assignmentStmt assignmentStmtsOptional
+declarativeStmt varDeclarePhrase specificDeclarativePhrase
+varDeclarePhrase DECLARE varOrListDeclare COLON
+varOrListDeclare VAR_ID
+varOrListDeclare LIST OF VARIABLES listVarId
+listVarId VAR_ID listVarIdOptional
+listVarIdOptional EPSILON
+listVarIdOptional VAR_ID listVarIdOptional
 type INTEGER
 type BOOLEAN
 type REAL
-rect_array_declaration DECLARE LIST OF VARIABLES list_var_name COLON ARRAY list_dim of type SEMI_COLON
-rect_array_declaration DECLARE VAR_NAME COLON ARRAY list_dim of type SEMI_COLON
-list_dim SO r1 DOUBLE_DOT r1 SC list_dim
-list_dim SO r1 DOUBLE_DOT r1 SC
-r1 NUM
-r1 VAR_NAME
-jag_array_declaration jag_array_nam jag_array_initialisation
-jag_array_nam DECLARE LIST OF VARIABLES list_var_name COLON JAGGED ARRAY SO r1 DOUBLE_DOTDOUBLE_DOT r1 SC list_SB of type SEMI_COLON
-jag_array_nam DECLARE VAR_NAME COLON JAGGED ARRAY SO r1 DOUBLE_DOTDOUBLE_DOT r1 SC list_SB of type SEMI_COLON
-list_SB SO SC 
-list_SB SO SC SO SC
-jag_array_initialisation r1 SO NUM SC COLON SIZE NUM COLON VALUES OCB LIST_INT CCB jag_array_initialisation
-jag_array_initialisation r1 SO NUM SC COLON SIZE NUM COLON VALUES OCB LIST_INT CCB
-list_int_semicol list_int_spaces SEMI_COLON list_int_semicol 
-list_int_semicol list_int_spaces
-element VAR_NAME SO list_int_spaces SC
-expression element
-expression sum_expression
-expression or_logical_expression
-sum_expression sum_expression sum_op mul_expression
-sum_expression mul_expression
-sum_op ADD
-sum_op SUB
-mul_expression mul_expression mul_op element
-mul_op MUL
-mul_op DIV
-or_logical_expression or_logical_expression LOGICAL_OR and_logical_expression
-or_logical_expression and_logical_expression
-and_logical_expression and_logical_expression LOGICAL_AND element
-declarative_state var_declaration 
-declarative_state rect_array_declaration
-declarative_state jag_array_declaration
-list_state list_dec_state list_assign_state
-list_dec_state list_dec_state declarative_state
-list_dec_state declarative_state
-list_assign_state list_assign_state assignment_state
-list_assign_state assignment_state
-assignment_state element EQUAL_TO expression
+specificDeclarativePhrase primitiveDeclarativePhrase
+specificDeclarativePhrase rectArrayDeclarativePhrase
+specificDeclarativePhrase jaggedArrayDeclarativePhrase jaggedArrayInitialization
+primitiveDeclarativePhrase type SEMI_COLON
+rectArrayDeclarativePhrase ARRAY listDim OF type SEMI_COLON
+jaggedArrayDeclarativePhrase JAGGED ARRAY listDim listEmptyDim OF type SEMI_COLON
+listDim OSB index DOUBLE_DOT index CSB listDimOptional
+listDimOptional EPSILON
+listDimOptional OSB index DOUBLE_DOT index CSB listDimOptional
+index NUM
+index VAR_ID
+listEmptyDim OSB CSB listEmptyDimOptional
+listEmptyDimOptional EPSILON
+listEmptyDimOptional OSB CSB listEmptyDimOptional
+jaggedArrayInitialization jaggedArrayInitializationPhrase jaggedArrayInitializationOptional
+jaggedArrayInitializationPhrase R1 OSB NUM CSB COLON SIZE NUM COLON VALUES OCB listIntSemiColon CCB
+jaggedArrayInitializationOptional EPSILON
+jaggedArrayInitializationOptional jaggedArrayInitializationPhrase jaggedArrayInitializationOptional
+listIntSemiColon listInt listIntSemiColonOptional
+listIntSemiColonOptional EPSILON
+listIntSemiColonOptional SEMI_COLON listInt listIntSemiColonOptional
+listInt NUM listIntOptional
+listIntOptional EPSILON
+listIntOptional NUM listIntOptional
+assignmentStmt element ASSIGN_OP expression
+expression orLogicExpression
+element VAR_ID elementDimOptional
+elementDimOptional EPSILON
+elementDimOptional OSB listInt CSB
+orLogicExpression andLogicExpression orLogicExpressionOptional
+orLogicExpressionOptional EPSILON
+orLogicExpressionOptional OR_LOGIC_OP andLogicExpression orLogicExpressionOptional
+andLogicExpression addExpression andLogicExpressionOptional
+andLogicExpressionOptional EPSILON
+andLogicExpressionOptional AND_LOGIC_OP addExpression andLogicExpressionOptional 
+addExpression mulExpression addExpressionOptional
+addExpressionOptional EPSILON
+addExpressionOptional addOps mulExpression addExpressionOptional
+addOps ADD_OP
+addOps SUB_OP
+mulExpression term mulExpressionOptional
+mulExpressionOptional EPSILON
+mulExpressionOptional mulOps term mulExpressionOptional
+mulOps MUL_OP
+mulOps DIV_OP
+term NUM
+term element

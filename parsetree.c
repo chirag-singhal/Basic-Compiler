@@ -2,12 +2,10 @@
 #include "token.h"
 #include "grammar.h"
 
-#define NUM_RULES 44
+#define NUM_RULES 46
 //push
-stack push(stack s, stack head)
-{
-    if(head==NULL)
-    {
+stack push(stack s, stack head) {
+    if(head==NULL) {
         head = s;
         return head;
     }
@@ -18,8 +16,7 @@ stack push(stack s, stack head)
     return head;
 }
 //pop
-stack pop(stack head)
-{
+stack pop(stack head) {
     if(head==NULL)
         return head;
         

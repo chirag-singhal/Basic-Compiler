@@ -1,6 +1,6 @@
 #include "grammar.h"
 
-#define NUM_RULES 44
+#define NUM_RULES 46
 #define MAX_SIZE 25
 
 
