@@ -3,10 +3,7 @@
 
 #include<stdio.h>
 #include<string.h>
-#include <stdlib.h>
-
-#define NUM_RULES 44
-#define MAX_SIZE 25
+#include<stdlib.h>
 
 
 struct rhs_production_rule {

@@ -22,11 +22,11 @@ specificDeclarativePhrase jaggedArrayDeclarativePhrase jaggedArrayInitialization
 primitiveDeclarativePhrase type SEMI_COLON
 rectArrayDeclarativePhrase ARRAY listDim OF type SEMI_COLON
 jaggedArrayDeclarativePhrase JAGGED ARRAY listDim listEmptyDim OF type SEMI_COLON
-listDim OSB index DOUBLE_DOT index CSB listDimOptional
+listDim OSB idx DOUBLE_DOT idx CSB listDimOptional
 listDimOptional EPSILON
-listDimOptional OSB index DOUBLE_DOT index CSB listDimOptional
-index NUM
-index VAR_ID
+listDimOptional OSB idx DOUBLE_DOT idx CSB listDimOptional
+idx NUM
+idx VAR_ID
 listEmptyDim OSB CSB listEmptyDimOptional
 listEmptyDimOptional EPSILON
 listEmptyDimOptional OSB CSB listEmptyDimOptional

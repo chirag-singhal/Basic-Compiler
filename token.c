@@ -1,32 +1,37 @@
 #include "token.h"
-#define MAX_SIZE 20
+
+#define MAX_SIZE 50
 
 
 char* known_symbols[] = {
+    "program",
     "()",
     "{",
     "}",
-    "[",
-    "]",
+    "declare",
     ":",
-    ";",
-    "program",
+    "list",
+    "of",
+    "variables",
     "integer",
     "boolean",
     "real",
-    "declare",
-    "list",
-    "of",
+    ";",
     "array",
     "jagged",
-    "variables",
+    "[",
     "..",
+    "]",
+    "R1",
+    "size",
+    "values",
+    "=",
+    "|||",
+    "&&&",
     "+",
     "-",
     "*",
-    "/",
-    "|||",
-    "&&&"
+    "/"
 };
 
 int getToken(char* word) {
@@ -46,14 +51,14 @@ int getToken(char* word) {
     }
     if(valid_num)
         return NUM;
-    // check for VAR_NAME
+    // check for VAR_ID
     if (len > 20 || !((word[0] >= 'a' && word[0] <= 'z') || word[0] =='_' || (word[0] >= 'A' && word[0] <= 'Z')))
         return -1;
     for (int i = 1; i < len; ++i) {
         if ((word[i] < 'a' || word[i] > 'z') && word[i] != '_' && (word[i] < 'A' || word[i] > 'Z') && (word[i] < '0' || word[i] > '9'))
             return -1;
     }
-    return VAR_NAME;
+    return VAR_ID;
 }
 
 void tokeniseSourcecode( char* sourceCodeFileName, tokenStream *s) {
@@ -72,18 +77,30 @@ void tokeniseSourcecode( char* sourceCodeFileName, tokenStream *s) {
         token = strtok(line, " \t\n");
         
         while (token != NULL) {
-            struct tokenNode* tokenNode = (struct tokenNode*)malloc(sizeof(struct tokenNode));
-            
-            tokenNode -> tokenID = getToken(token);
-            tokenNode -> symbol = malloc(sizeof(char) * MAX_SIZE);
-            strcpy(tokenNode -> symbol, token);
-            tokenNode -> lineNumber = line_num;
-            tokenStream* next_s = (tokenStream*)malloc(sizeof(tokenStream));
-            s -> next = next_s;
-            next_s -> token = tokenNode;
-            next_s -> next = NULL;
-            s = next_s;
-            token = strtok(NULL, " \t\n");
+            if(s -> token == NULL) {
+                struct tokenNode* tokenNode = (struct tokenNode*)malloc(sizeof(struct tokenNode));                
+                tokenNode -> tokenID = getToken(token);
+                tokenNode -> symbol = malloc(sizeof(char) * MAX_SIZE);
+                strcpy(tokenNode -> symbol, token);
+                tokenNode -> lineNumber = line_num;
+                s -> token = tokenNode;
+                s -> next = NULL;
+                token = strtok(NULL, " \t\n");
+            }
+            else {
+                struct tokenNode* tokenNode = (struct tokenNode*)malloc(sizeof(struct tokenNode));
+                
+                tokenNode -> tokenID = getToken(token);
+                tokenNode -> symbol = malloc(sizeof(char) * MAX_SIZE);
+                strcpy(tokenNode -> symbol, token);
+                tokenNode -> lineNumber = line_num;
+                tokenStream* next_s = (tokenStream*)malloc(sizeof(tokenStream));
+                s -> next = next_s;
+                next_s -> token = tokenNode;
+                next_s -> next = NULL;
+                s = next_s;
+                token = strtok(NULL, " \t\n");
+            }
         }
         ++line_num;
     }

@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include "token.h"
+#include "grammar.h"
 
 
 typedef struct tokenNode* parserStackNode;
@@ -10,8 +11,8 @@ typedef struct tokenNode* parserStackNode;
 struct parserStack {
     parserStackNode token;
     int terminal;
-    parserStackNode prev;  
-    parserStackNode next;
+    struct parserStack* prev;  
+    struct parserStack* next;
 };
 
 typedef struct parserStack* stack;

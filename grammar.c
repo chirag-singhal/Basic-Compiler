@@ -1,7 +1,7 @@
 #include "grammar.h"
 
-#define NUM_RULES 46
-#define MAX_SIZE 25
+#define NUM_RULES 65
+#define MAX_SIZE 50
 
 
 int isTerminal(const char* word) {
@@ -18,8 +18,8 @@ void readGrammar(const char* filename, grammar G) {
         return;
     }
     for(int i = 0; i < NUM_RULES; ++i) {
-        char prod_rule[100];
-        fgets(prod_rule, 100, grammar_fp);
+        char prod_rule[150];
+        fgets(prod_rule, 150, grammar_fp);
         int len = strlen(prod_rule);
         prod_rule[len - 1] = '\0';
         
