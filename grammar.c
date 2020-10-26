@@ -187,6 +187,7 @@ void readGrammar(const char* filename, grammar G) {
         
         G[i].lhs_nonterminal = malloc(sizeof(char) * MAX_SIZE);
         strcpy(G[i].lhs_nonterminal, token);
+        G[i].nontermid = getNonTerm(token);
         struct rhs_production_rule* prev_rhs_rule = NULL;
         while ((token = strtok(NULL, " \0")) != NULL) {
             struct rhs_production_rule* rhs_rule = malloc(sizeof(struct rhs_production_rule));

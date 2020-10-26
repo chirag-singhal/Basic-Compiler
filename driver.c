@@ -11,6 +11,6 @@ void main() {
     tokenStream* s = (tokenStream*)malloc(sizeof(tokenStream));
     tokeniseSourcecode("sourcecode.txt", s);
     
-    parseTree* t;
+    parseTree* t = malloc(sizeof(struct _parseNode));
     createParseTree(t, s, G);
 }

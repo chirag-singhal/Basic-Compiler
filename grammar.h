@@ -95,6 +95,7 @@ struct rhs_production_rule {
 
 struct production_rule {
     char* lhs_nonterminal;
+    int nontermid;
     struct rhs_production_rule* head; 
 };
 

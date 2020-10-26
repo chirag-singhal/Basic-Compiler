@@ -11,7 +11,8 @@ typedef struct tokenNode* parserStackNode;
 struct parserStack {
     parserStackNode token;
     int terminal;
-    struct parserStack* prev;  
+    struct _parseNode* parseTreeNode;  
+    //struct parserStack* prev;  
     struct parserStack* next;
 };
 
@@ -19,8 +20,9 @@ typedef struct parserStack* stack;
 
 typedef struct _parseNode {
     struct tokenNode* token;
+    int terminal;
     int num_child;
-    struct _parseNode* children;
+    struct _parseNode** children;
 } parseNode;
 
 typedef parseNode parseTree;

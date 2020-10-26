@@ -95,6 +95,11 @@ int parseTable[43][31] = {
     {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-2,-2,-2,-2,-2,-2,64,65,-1}
 };
 
+void freeStackNode(stack node) {
+    free(node -> token);
+    free(node);    
+}
+
 //push
 stack push(stack s, stack head) {
     if(head==NULL) {
@@ -102,8 +107,8 @@ stack push(stack s, stack head) {
         return head;
     }
     s->next = head;
-    head->prev = s;
-    s->prev = NULL;
+    //head->prev = s;
+    //s->prev = NULL;
     head = s;
     return head;
 }
@@ -113,11 +118,10 @@ stack pop(stack head) {
         return head;
     stack temp = head;
     head = head->next;
-    head->prev = NULL;
-    free(temp -> token);
-    free(temp);
+    //head->prev = NULL;
     return head;
 }
+
 //initialize stack
 void createParseTree(parseTree *t, tokenStream *s, grammar G) {
     stack st = malloc(sizeof(struct parserStack));
@@ -129,14 +133,20 @@ void createParseTree(parseTree *t, tokenStream *s, grammar G) {
             strcpy(node -> token -> symbol, "start");
             node -> token -> tokenID = 0;
             node -> terminal = 0;
-            node -> prev = NULL;
             node -> next = NULL;
             st = push(node, st);
+            // add "start" to parse tree
+            t -> token = node -> token;
+            t -> terminal = 0;
+            t -> num_child = 0;
+            st -> parseTreeNode = t;
+            //
             break;
         }
     }
 
     while (s != NULL && st != NULL) {
+        printf("%s %s\n", s  -> token -> symbol, st -> token -> symbol);
         if(st -> terminal) {
             if(st -> token -> tokenID == EPSILON)
                 st = pop(st);
@@ -144,6 +154,7 @@ void createParseTree(parseTree *t, tokenStream *s, grammar G) {
                 s = s -> next;
                 st = pop(st);
             }
+           
         }
         else {
             int next_rule = parseTable[st -> token -> tokenID][s -> token -> tokenID] - 1;
@@ -156,16 +167,31 @@ void createParseTree(parseTree *t, tokenStream *s, grammar G) {
                 node -> token -> symbol = head -> word;
                 node -> token -> tokenID = head -> tokenId;
                 node -> terminal = head -> terminal;
-                node -> prev = NULL;
+                //node -> prev = NULL;
                 node -> next = NULL;
                 head = head -> next;
                 arr[size] = node;
                 size++;
             }
+            
+            stack top = st;
             st = pop(st);
+            
+            //
+            top -> parseTreeNode -> num_child = size;
+            top -> parseTreeNode -> children = malloc(sizeof(struct _parseNode*) * size);
+            for(int i = 0; i < size; i++) {
+                top -> parseTreeNode -> children[i] = (parseNode*)malloc(sizeof(struct _parseNode));
+                t -> token = arr[i] -> token;
+                t -> terminal = arr[i] -> terminal;
+                t -> num_child = 0;
+            }
             for(int i = size - 1; i >= 0; i--) {
                 st = push(arr[i], st);
+                st -> parseTreeNode = top -> parseTreeNode -> children[i];
             }
+            //
+            freeStackNode(top);
         }
     }
 }
