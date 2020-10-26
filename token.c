@@ -1,65 +1,8 @@
 #include "token.h"
+#include "grammar.h"
 
 #define MAX_SIZE 50
 
-
-char* known_symbols[] = {
-    "program",
-    "()",
-    "{",
-    "}",
-    "declare",
-    ":",
-    "list",
-    "of",
-    "variables",
-    "integer",
-    "boolean",
-    "real",
-    ";",
-    "array",
-    "jagged",
-    "[",
-    "..",
-    "]",
-    "R1",
-    "size",
-    "values",
-    "=",
-    "|||",
-    "&&&",
-    "+",
-    "-",
-    "*",
-    "/"
-};
-
-int getToken(char* word) {
-    for (int i = 0; i < sizeof(known_symbols)/sizeof(known_symbols[0]); ++i) {
-        if (strcmp(word, known_symbols[i]) == 0) {
-            return i;
-        }
-    }
-    // check for NUM
-    int len = strlen(word);
-    int valid_num = 1;
-    for(int i = 0; i < len; i++) {
-        if(word[i] < '0' || word[i] > '9') {
-            valid_num = 0;
-            break;
-        }
-    }
-    if(valid_num)
-        return NUM;
-    // check for VAR_ID
-    if (len > 20 || !((word[0] >= 'a' && word[0] <= 'z') || word[0] =='_' || (word[0] >= 'A' && word[0] <= 'Z')))
-        return -1;
-    for (int i = 1; i < len; ++i) {
-        if ((word[i] < 'a' || word[i] > 'z') && word[i] != '_' && (word[i] < 'A' || word[i] > 'Z') && (word[i] < '0' || word[i] > '9'))
-            return -1;
-    }
-    return VAR_ID;
-}
 
 void tokeniseSourcecode( char* sourceCodeFileName, tokenStream *s) {
     FILE* token_fp;

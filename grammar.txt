@@ -40,7 +40,7 @@ listIntSemiColonOptional SEMI_COLON listInt listIntSemiColonOptional
 listInt NUM listIntOptional
 listIntOptional EPSILON
 listIntOptional NUM listIntOptional
-assignmentStmt element ASSIGN_OP expression
+assignmentStmt element ASSIGN_OP expression SEMI_COLON
 expression orLogicExpression
 element VAR_ID elementDimOptional
 elementDimOptional EPSILON

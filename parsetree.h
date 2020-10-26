@@ -2,8 +2,8 @@
 #define PARSETREE_H
 
 #include <stdio.h>
-#include "token.h"
 #include "grammar.h"
+#include "token.h"
 
 
 typedef struct tokenNode* parserStackNode;
