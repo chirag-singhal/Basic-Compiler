@@ -140,6 +140,8 @@ void createParseTree(parseTree *t, tokenStream *s, grammar G) {
             t -> token = node -> token;
             t -> terminal = 0;
             t -> num_child = 0;
+            t -> grammar_rule_idx = i + 1;
+            t -> depth = 0;
             break;
         }
     }
@@ -177,11 +179,14 @@ void createParseTree(parseTree *t, tokenStream *s, grammar G) {
             
             top -> parseTreeNode -> num_child = size;
             top -> parseTreeNode -> children = malloc(sizeof(struct _parseNode*) * size);
+            top -> parseTreeNode -> grammar_rule_idx = next_rule;
             for(int i = 0; i < size; i++) {
                 top -> parseTreeNode -> children[i] = (parseNode*)malloc(sizeof(struct _parseNode));
                 top -> parseTreeNode -> children[i] -> token = arr[i] -> token;
                 top -> parseTreeNode -> children[i] -> terminal = arr[i] -> terminal;
                 top -> parseTreeNode -> children[i] -> num_child = 0;
+                top -> parseTreeNode -> children[i] -> typeExpression = malloc(sizeof(typeExpressionRow));
+                top -> parseTreeNode -> children[i] -> depth = top -> parseTreeNode -> depth + 1;    
             }
             for(int i = size - 1; i >= 0; i--) {
                 st = push(arr[i], st);

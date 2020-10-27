@@ -20,8 +20,8 @@ specificDeclarativePhrase primitiveDeclarativePhrase
 specificDeclarativePhrase rectArrayDeclarativePhrase
 specificDeclarativePhrase jaggedArrayDeclarativePhrase jaggedArrayInitialization
 primitiveDeclarativePhrase type SEMI_COLON
-rectArrayDeclarativePhrase ARRAY listDim OF type SEMI_COLON
-jaggedArrayDeclarativePhrase JAGGED ARRAY listDim listEmptyDim OF type SEMI_COLON
+rectArrayDeclarativePhrase ARRAY listDim OF INTEGER SEMI_COLON
+jaggedArrayDeclarativePhrase JAGGED ARRAY listDim listEmptyDim OF INTEGER SEMI_COLON
 listDim OSB idx DOUBLE_DOT idx CSB listDimOptional
 listDimOptional EPSILON
 listDimOptional OSB idx DOUBLE_DOT idx CSB listDimOptional
