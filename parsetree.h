@@ -30,7 +30,7 @@ struct rectArray {
 
 union jaggedArrayR2Dims {
     int* range_2d;
-    int** range_3d;
+    int** range_3d;      //first element of each row has its size
 };
 
 struct jaggedArray {

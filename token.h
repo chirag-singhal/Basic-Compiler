@@ -7,7 +7,7 @@
 #include "grammar.h"
 
 #define NUM_TERMS 31
-#define NUM_NONTERMS 43
+#define NUM_NONTERMS 45
 
 
 struct tokenNode {
