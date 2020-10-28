@@ -44,7 +44,10 @@ assignmentStmt element ASSIGN_OP expression SEMI_COLON
 expression orLogicExpression
 element VAR_ID elementDimOptional
 elementDimOptional EPSILON
-elementDimOptional OSB listInt CSB
+elementDimOptional OSB listIdx CSB
+listIdx idx listIdxOptional
+listIdxOptional EPSILON
+listIdxOptional idx listIdxOptional
 orLogicExpression andLogicExpression orLogicExpressionOptional
 orLogicExpressionOptional EPSILON
 orLogicExpressionOptional OR_LOGIC_OP andLogicExpression orLogicExpressionOptional

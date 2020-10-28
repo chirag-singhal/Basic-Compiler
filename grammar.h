@@ -73,6 +73,8 @@ typedef enum {
     expression,
     element,
     elementDimOptional,
+    listIdx,
+    listIdxOptional,
     orLogicExpression,
     orLogicExpressionOptional,
     andLogicExpression,

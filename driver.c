@@ -13,4 +13,34 @@ void main() {
     
     parseTree* t = malloc(sizeof(struct _parseNode));
     createParseTree(t, s, G);
+    /*
+    int option;
+    printf("Option 0: exit\nOption 1: Create parse tree\nOption 2: Traverse the parse tree to construct typeExpressionTable. Also print the type errors while
+    traversing the parse tree and accessing the typeExpressionTable.\nOption 3: Print parse tree in the specified format\nOption 4: Print typeExpressionTable in the specified format.\n")
+    printf("Choose an option to continue: ");
+    scanf("%d", &option);
+    while(option)
+    {
+        if(option == 1)
+        {
+            //create parse tree
+        }
+        else if(option == 2)
+        {
+            //traverse tree, make table and print errors
+        }
+        else if(option == 3)
+        {
+            //print parse tree in given format
+        }
+        else if(option == 4)
+        {
+            //print expression table
+        }
+        printf("Option 0: exit\nOption 1: Create parse tree\nOption 2: Traverse the parse tree to construct typeExpressionTable. Also print the type errors while
+        traversing the parse tree and accessing the typeExpressionTable.\nOption 3: Print parse tree in the specified format\nOption 4: Print typeExpressionTable in the specified format.\n")
+        printf("Choose an option to continue: ");
+        scanf("%d", &option);
+    }
+    */
 }

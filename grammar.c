@@ -1,6 +1,6 @@
 #include "grammar.h"
 
-#define NUM_RULES 65
+#define NUM_RULES 68
 #define MAX_SIZE 50
 
 
@@ -102,6 +102,8 @@ char* nonterm_grammar[] = {
     "expression",
     "element",
     "elementDimOptional",
+    "listIdx",
+    "listIdxOptional",
     "orLogicExpression",
     "orLogicExpressionOptional",
     "andLogicExpression",

@@ -12,29 +12,45 @@ typedef enum _basicElementTypeEnum {
     BOOLEAN
 } basicElementTypeEnum;
 
+union rectArrayIndexUnion {
+    int intIndex;
+    char* varIdIndex; 
+};
+
+typedef struct _rectArrayIndex {
+    int isVarId;
+    union rectArrayIndexUnion value;
+} rectArrayIndex;
+
 struct rectArray {
     int dimensions;
-    int** ranges;
+    rectArrayIndex** ranges;
     basicElementTypeEnum basicElementType;
+};
+
+union jaggedArrayR2Dims {
+    int* range_2d;
+    int** range_3d;
 };
 
 struct jaggedArray {
     int dimensions;
-    int** ranges;
+    int R1_range[2];
+    union jaggedArrayR2Dims R2_ranges;
     basicElementTypeEnum basicElementType;
-    int** values; 
 };
 
 union typeExpression {
     basicElementTypeEnum primitive;
-    struct rectArray;
-    struct jaggedArray;
+    struct rectArray rectArray;
+    struct jaggedArray jaggedArray;
 };
 
 typedef enum _typeVariableEnum {
     PRIMITIVE,
     RECTARRAY,
-    JAGGEDARRAY
+    JAGGEDARRAY,
+    ERROR
 } typeVariableEnum;
 
 typedef enum _typeRectArrayEnum {
@@ -44,7 +60,6 @@ typedef enum _typeRectArrayEnum {
 } typeRectArrayEnum;
 
 typedef struct _typeExpressionRow {
-    char* symbol;
     typeVariableEnum typeVariable;
     typeRectArrayEnum rectArrayType;
     union typeExpression expression;
@@ -69,8 +84,8 @@ OK - Whether terminal or non terminal
 OK - Type expression stored in the corresponding node (if non-leaf)
 OK - Name of lexeme (if leaf node)
 OK - Line number (if leaf node)
-Grammar rule applied for expansion of this node while parsing (if non leaf)
-Depth of node (root of the parse tree at depth 0)
+OK - Grammar rule applied for expansion of this node while parsing (if non leaf)
+OK - Depth of node (root of the parse tree at depth 0)
 */
 
 typedef struct _parseNode {
@@ -87,5 +102,11 @@ typedef struct _parseNode {
 typedef parseNode parseTree;
 
 extern void createParseTree(parseTree *t, tokenStream *s, grammar G);
+
+extern stack pop(stack head);
+
+extern stack push(stack s, stack head);
+
+extern void freeStackNode(stack node);
 
 #endif // PARSETREE_H
