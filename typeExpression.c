@@ -21,11 +21,15 @@ typeExpressionRow* search_typeExpTable(char* symbol, typeExpressionTable T) {
 }
 
 void push_typeExpTable(char* symbol, typeExpressionRow* row, typeExpressionTable T) {
-    if (T == NULL) {
+    if (T -> symbol == NULL) {
         T = (typeExpressionTable)malloc(sizeof(typeExpressionTableNode));
         T -> symbol = malloc(sizeof(char) * MAX_SIZE);
         strcpy(T -> symbol, symbol);
         T -> row = row;
+        return;
+    }
+    while (T -> next != NULL) {
+        T = T -> next;
     }
     T -> next = (typeExpressionTable)malloc(sizeof(typeExpressionTableNode));
     T -> next -> prev = T;
@@ -49,27 +53,27 @@ void handleDeclarativeStmt(parseNode* t, typeExpressionTable T) {
         t -> children[1] -> typeExpression -> rectArrayType = NOT_APPLICABLE;
         if(t -> children[1] -> children[0] -> children[0] -> children[0] -> token -> tokenID == INTEGER) {
             //INTEGER
-            (t -> children[1] -> typeExpression -> expression).primitive = INTEGER;
+            (t -> children[1] -> typeExpression -> expression).primitive = INTEGER_TYPE;
         }
-        else if (t -> children[1] -> children[0] -> children[0] -> children[0] -> token -> tokenID == BOOLEAN) {
+        else if (t -> children[1] -> children[0] -> children[0] -> children[0] -> token -> tokenID == BOOLEAN_TYPE) {
             //BOOLEAN
-            (t -> children[1] -> typeExpression -> expression).primitive = BOOLEAN;
+            (t -> children[1] -> typeExpression -> expression).primitive = BOOLEAN_TYPE;
         }
         else {
             //REAL
-            (t -> children[1] -> typeExpression -> expression).primitive = REAL;
+            (t -> children[1] -> typeExpression -> expression).primitive = REAL_TYPE;
         }
         
         // push variable to type expression table
         if (t -> children[0] -> children[1] -> num_child == 1) {
             // t -> children[0] -> children[1] -> children[0] is the parse node pointing to the VAR_ID
-            push_typeExpTable(t -> children[0] -> children[1] -> children[0] -> token -> symbol, t -> children[1] -> typeExpression, T);
+            push_typeExpTable(t -> children[0] -> children[1] -> children[0] -> sourceToken, t -> children[1] -> typeExpression, T);
         }
         else {
             // t -> children[0] -> children[1] -> children[3] is the parse node pointing to listVarId
             parseNode* temp = t -> children[0] -> children[1] -> children[3];
             while (temp -> num_child == 2) {
-                push_typeExpTable(temp -> children[0] -> token -> symbol, t -> children[1] -> typeExpression, T);
+                push_typeExpTable(temp -> children[0] -> sourceToken, t -> children[1] -> typeExpression, T);
                 temp = temp -> children[0];
             }
         }
@@ -89,33 +93,33 @@ void handleDeclarativeStmt(parseNode* t, typeExpressionTable T) {
             // first range index
             if(temp -> children[1] -> children[0] -> token -> tokenID == VAR_ID) {
                 // check if VAR_ID is INTEGER from type expression table
-                typeExpressionRow* row = search_typeExpTable(temp -> children[1] -> children[0] -> token -> symbol, T);
-                if (row -> typeVariable != PRIMITIVE || (row -> expression).primitive != INTEGER) {
+                typeExpressionRow* row = search_typeExpTable(temp -> children[1] -> children[0] -> sourceToken, T);
+                if (row -> typeVariable != PRIMITIVE || (row -> expression).primitive != INTEGER_TYPE) {
                     // error
                     //lineNumber, statement type, operator, firstOperandLexeme, type,
                     //secondOperandLexeme, type, position in parse tree, message 
                     printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Declaration statement", t->token->symbol, "check this", "***", "***", t -> depth, "RA invalid element type");
                 }
                 rectArr.ranges[numOfDim][0].isVarId = 1;
-                rectArr.ranges[numOfDim][0].value.varIdIndex = temp -> children[1] -> children[0] -> token -> symbol;
+                rectArr.ranges[numOfDim][0].value.varIdIndex = temp -> children[1] -> children[0] -> sourceToken;
             }
             else {
                 rectArr.ranges[numOfDim][0].isVarId = 0;
-                rectArr.ranges[numOfDim][0].value.intIndex = atoi(temp -> children[1] -> children[0] -> token -> symbol);
+                rectArr.ranges[numOfDim][0].value.intIndex = atoi(temp -> children[1] -> children[0] -> sourceToken);
             }
             // second range index
             if(temp -> children[3] -> children[0] -> token -> tokenID == VAR_ID) {
-                typeExpressionRow* row = search_typeExpTable(temp -> children[3] -> children[0] -> token -> symbol, T);
-                if (row -> typeVariable != PRIMITIVE || (row -> expression).primitive != INTEGER) {
+                typeExpressionRow* row = search_typeExpTable(temp -> children[3] -> children[0] -> sourceToken, T);
+                if (row -> typeVariable != PRIMITIVE || (row -> expression).primitive != INTEGER_TYPE) {
                     // error
                     printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Declaration statement", t->token->symbol, row->typeVariable, "***", "***", t -> depth, "RA type mismatch");
                 }
                 rectArr.ranges[numOfDim][1].isVarId = 1;
-                rectArr.ranges[numOfDim][1].value.varIdIndex = temp -> children[1] -> children[0] -> token -> symbol;
+                rectArr.ranges[numOfDim][1].value.varIdIndex = temp -> children[1] -> children[0] -> sourceToken;
             }
             else {
                 rectArr.ranges[numOfDim][1].isVarId = 0;
-                rectArr.ranges[numOfDim][1].value.intIndex = atoi(temp -> children[1] -> children[0] -> token -> symbol);
+                rectArr.ranges[numOfDim][1].value.intIndex = atoi(temp -> children[1] -> children[0] -> sourceToken);
             }
 
             if(temp -> children[1] -> children[0] -> token -> tokenID == VAR_ID || temp -> children[3] -> children[0] -> token -> tokenID == VAR_ID)
@@ -125,19 +129,19 @@ void handleDeclarativeStmt(parseNode* t, typeExpressionTable T) {
         }
         t -> children[1] -> typeExpression -> rectArrayType = rectArrayType;
         rectArr.dimensions = numOfDim;
-        rectArr.basicElementType = INTEGER;
+        rectArr.basicElementType = INTEGER_TYPE;
         (t -> children[1] -> typeExpression -> expression).rectArray = rectArr;
         
         // push variable to type expression table
         if (t -> children[0] -> children[1] -> num_child == 1) {
             // t -> children[0] -> children[1] -> children[0] is the parse node pointing to the VAR_ID
-            push_typeExpTable(t -> children[0] -> children[1] -> children[0] -> token -> symbol, t -> children[1] -> typeExpression, T);
+            push_typeExpTable(t -> children[0] -> children[1] -> children[0] -> sourceToken, t -> children[1] -> typeExpression, T);
         }
         else {
             // t -> children[0] -> children[1] -> children[3] is the parse node pointing to listVarId
             parseNode* temp = t -> children[0] -> children[1] -> children[3];
             while (temp -> num_child == 2) {
-                push_typeExpTable(temp -> children[0] -> token -> symbol, t -> children[1] -> typeExpression, T);
+                push_typeExpTable(temp -> children[0] -> sourceToken, t -> children[1] -> typeExpression, T);
                 temp = temp -> children[0];
             }
         }
@@ -158,17 +162,17 @@ void handleDeclarativeStmt(parseNode* t, typeExpressionTable T) {
         jaggedArray.dimensions = numDim;
         if (t -> children[1] -> children[0] -> children[2] -> children[1] -> children[0] -> token -> tokenID == VAR_ID || t -> children[1] -> children[0] -> children[2] -> children[3] -> children[0] -> token -> tokenID == VAR_ID) {
             // error
-            printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Declaration statement", t->token->symbol, JAGARRAY, "***", "***", t -> depth, "JA invalid range");
+            printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Declaration statement", t->token->symbol, "JAGARRAY", "***", "***", t -> depth, "JA invalid range");
         }
-        jaggedArray.R1_range[0] = atoi(t -> children[1] -> children[0] -> children[2] -> children[1] -> children[0] -> token -> symbol);
-        jaggedArray.R1_range[1] = atoi(t -> children[1] -> children[0] -> children[2] -> children[3] -> children[0] -> token -> symbol);
+        jaggedArray.R1_range[0] = atoi(t -> children[1] -> children[0] -> children[2] -> children[1] -> children[0] -> sourceToken);
+        jaggedArray.R1_range[1] = atoi(t -> children[1] -> children[0] -> children[2] -> children[3] -> children[0] -> sourceToken);
         
         if (numDim == 2)
             jaggedArray.R2_ranges.range_2d = (int*)malloc((jaggedArray.R1_range[1]-jaggedArray.R1_range[0]+1) * sizeof(int));
         else
             jaggedArray.R2_ranges.range_3d = (int**)malloc((jaggedArray.R1_range[1]-jaggedArray.R1_range[0]+1) * sizeof(int*));
         
-        jaggedArray.basicElementType = INTEGER;
+        jaggedArray.basicElementType = INTEGER_TYPE;
         // we need to count for third dimension
         // now, temp is the pointer to jaggedArrayInitialization
         temp = t -> children[1] -> children[1];
@@ -179,22 +183,22 @@ void handleDeclarativeStmt(parseNode* t, typeExpressionTable T) {
             temp -> children[0] -> children[10]; // pointer to listIntSemiColon
             // do something
             if (numDim == 2)
-                jaggedArray.R2_ranges.range_2d[atoi(temp -> children[0] -> children[2] -> token -> symbol)-jaggedArray.R1_range[0]] = atoi(temp -> children[0] -> children[6] -> token -> symbol);
+                jaggedArray.R2_ranges.range_2d[atoi(temp -> children[0] -> children[2] -> sourceToken)-jaggedArray.R1_range[0]] = atoi(temp -> children[0] -> children[6] -> sourceToken);
             else {
-                jaggedArray.R2_ranges.range_3d[atoi(temp -> children[0] -> children[2] -> token -> symbol)-jaggedArray.R1_range[0]] = (int*)malloc((atoi(temp -> children[0] -> children[6] -> token -> symbol)+1) * sizeof(int));
+                jaggedArray.R2_ranges.range_3d[atoi(temp -> children[0] -> children[2] -> sourceToken)-jaggedArray.R1_range[0]] = (int*)malloc((atoi(temp -> children[0] -> children[6] -> sourceToken)+1) * sizeof(int));
             }
             
             parseNode* temp2 = temp -> children[0] -> children[10];
             // temp2 points to listIntSemiColon
             if (numDim == 3)
-                jaggedArray.R2_ranges.range_3d[atoi(temp -> children[0] -> children[2] -> token -> symbol)-jaggedArray.R1_range[0]][0] = atoi(temp -> children[0] -> children[6]);
+                jaggedArray.R2_ranges.range_3d[atoi(temp -> children[0] -> children[2] -> sourceToken)-jaggedArray.R1_range[0]][0] = atoi(temp -> children[0] -> children[6] -> sourceToken);
             int count = 0;
             while (temp2 -> num_child == 3 || temp2 -> num_child == 2) {
-                if (numDim == 2 && count >= jaggedArray.R2_ranges.range_2d[atoi(temp -> children[0] -> children[2] -> token -> symbol)-jaggedArray.R1_range[0]]) {
+                if (numDim == 2 && count >= jaggedArray.R2_ranges.range_2d[atoi(temp -> children[0] -> children[2] -> sourceToken)-jaggedArray.R1_range[0]]) {
                     // error
                     printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Declaration statement", t->token->symbol, "JAGARRAY", "***", "***", t -> depth, "2D JA excess elements");
                 }
-                if (numDim == 3 && count >= jaggedArray.R2_ranges.range_3d[atoi(temp -> children[0] -> children[2] -> token -> symbol)-jaggedArray.R1_range[0]][0]) {
+                if (numDim == 3 && count >= jaggedArray.R2_ranges.range_3d[atoi(temp -> children[0] -> children[2] -> sourceToken)-jaggedArray.R1_range[0]][0]) {
                     // error
                     printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Declaration statement", t->token->symbol, "JAGARRAY", "***", "***", t -> depth, "3D JA excess elements");
                 }
@@ -211,16 +215,16 @@ void handleDeclarativeStmt(parseNode* t, typeExpressionTable T) {
                     printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Declaration statement", t->token->symbol, "JAGARRAY", "***", "***", t -> depth, "2D JA excess elements");
                 }
                 else if (numDim == 3) {
-                    jaggedArray.R2_ranges.range_3d[atoi(temp -> children[0] -> children[2] -> token -> symbol)-jaggedArray.R1_range[0]][count+1] = count2;
+                    jaggedArray.R2_ranges.range_3d[atoi(temp -> children[0] -> children[2] -> sourceToken)-jaggedArray.R1_range[0]][count+1] = count2;
                 }
                 count++;
                 temp2 = temp2 -> children[temp2 -> num_child-1];
             }
-            if (numDim == 2 && count < jaggedArray.R2_ranges.range_2d[atoi(temp -> children[0] -> children[2] -> token -> symbol)-jaggedArray.R1_range[0]]) {
+            if (numDim == 2 && count < jaggedArray.R2_ranges.range_2d[atoi(temp -> children[0] -> children[2] -> sourceToken)-jaggedArray.R1_range[0]]) {
                 // error
                 printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Declaration statement", t->token->symbol, "JAGARRAY", "***", "***", t -> depth, "2D JA too few elements");
             }
-            if (numDim == 3 && count < jaggedArray.R2_ranges.range_3d[atoi(temp -> children[0] -> children[2] -> token -> symbol)-jaggedArray.R1_range[0]][0]) {
+            if (numDim == 3 && count < jaggedArray.R2_ranges.range_3d[atoi(temp -> children[0] -> children[2] -> sourceToken)-jaggedArray.R1_range[0]][0]) {
                 // error
                 printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Declaration statement", t->token->symbol, "JAGARRAY", "***", "***", t -> depth, "3D JA too few elements");
             }
@@ -232,13 +236,13 @@ void handleDeclarativeStmt(parseNode* t, typeExpressionTable T) {
         // push variable to type expression table
         if (t -> children[0] -> children[1] -> num_child == 1) {
             // t -> children[0] -> children[1] -> children[0] is the parse node pointing to the VAR_ID
-            push_typeExpTable(t -> children[0] -> children[1] -> children[0] -> token -> symbol, t -> children[1] -> typeExpression, T);
+            push_typeExpTable(t -> children[0] -> children[1] -> children[0] -> sourceToken, t -> children[1] -> typeExpression, T);
         }
         else {
             // t -> children[0] -> children[1] -> children[3] is the parse node pointing to listVarId
             parseNode* temp = t -> children[0] -> children[1] -> children[3];
             while (temp -> num_child == 2) {
-                push_typeExpTable(temp -> children[0] -> token -> symbol, t -> children[1] -> typeExpression, T);
+                push_typeExpTable(temp -> children[0] -> sourceToken, t -> children[1] -> typeExpression, T);
                 temp = temp -> children[0];
             }
         }
@@ -282,7 +286,7 @@ int compTypeExp(typeExpressionRow* r1, typeExpressionRow* r2){
                 }
                 else if(v1 == 1)
                 {
-                    if(!strcmp((r1->expression).rectArray.ranges[i][0].value.intIndex, (r2->expression).rectArray.ranges[i][0].value.intIndex))
+                    if(!strcmp((r1->expression).rectArray.ranges[i][0].value.varIdIndex, (r2->expression).rectArray.ranges[i][0].value.varIdIndex))
                         return 0;
                 }
                 //for high
@@ -293,7 +297,7 @@ int compTypeExp(typeExpressionRow* r1, typeExpressionRow* r2){
                 }
                 else if(v1 == 1)
                 {
-                    if(!strcmp((r1->expression).rectArray.ranges[i][1].value.intIndex, (r2->expression).rectArray.ranges[i][1].value.intIndex))
+                    if(!strcmp((r1->expression).rectArray.ranges[i][1].value.varIdIndex, (r2->expression).rectArray.ranges[i][1].value.varIdIndex))
                         return 0;
                 }
             }
@@ -339,13 +343,14 @@ int compTypeExp(typeExpressionRow* r1, typeExpressionRow* r2){
 }
     
 void handleElement(parseNode* t, typeExpressionTable T) {
-    typeExpressionRow* row = search_typeExpTable(t -> children[0] -> token -> symbol, T);
+    typeExpressionRow* row = search_typeExpTable(t -> children[0] -> sourceToken, T);
     
     // if any error, set this new_row to be ERROR and return
     typeExpressionRow* new_row = (typeExpressionRow*)malloc(sizeof(typeExpressionRow));
     
     // this is set new_row as something which is not ERROR deterministically. INTEGER here does not matter.
-    new_row -> typeVariable = INTEGER;
+    //CHECK THIS LATER DANGER
+    new_row -> typeVariable = PRIMITIVE;
 
     if (row == NULL) {
         // error - variable does not exist
@@ -374,35 +379,55 @@ void handleElement(parseNode* t, typeExpressionTable T) {
                 if (dim >= (row -> expression).rectArray.dimensions) {
                     // error
                     printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "RECTARRAY", "***", "***", t -> depth, "RA index out of bounds");
+                    new_row -> typeVariable = ERROR;
+                    new_row -> rectArrayType = NOT_APPLICABLE;
+                    (new_row -> expression).primitive = INTEGER_TYPE;
+                    t -> typeExpression = new_row;
                 }
                 
                 if (temp -> children[0] -> children[0] -> token -> tokenID == NUM) {
-                    int idx = atoi(temp -> children[0] -> children[0] -> token -> symbol);
-                    if ((row -> expression).rectArray.ranges[dim][0].isVarId && getToken((row -> expression).rectArray.ranges[dim][0].value.varIdIndex) != VAR_ID) {
+                    int idx = atoi(temp -> children[0] -> children[0] -> sourceToken);
+                    if ((row -> expression).rectArray.ranges[dim][0].isVarId && search_typeExpTable((row -> expression).rectArray.ranges[dim][0].value.varIdIndex, T) == NULL) {
                         // error - set type expression to ERROR
                         printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "RECTARRAY", "***", "***", t -> depth, "check this");
                         new_row -> typeVariable = ERROR;
                         new_row -> rectArrayType = NOT_APPLICABLE;
-                        (new_row -> expression).primitive = INTEGER;
+                        (new_row -> expression).primitive = INTEGER_TYPE;
                         t -> typeExpression = new_row;
                     }
                     else if (!(row -> expression).rectArray.ranges[dim][0].isVarId && (row -> expression).rectArray.ranges[dim][0].value.intIndex > idx) {
                         // error
                         printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "RECTARRAY", "***", "***", t -> depth, "RA index out of bounds");
+                        new_row -> typeVariable = ERROR;
+                        new_row -> rectArrayType = NOT_APPLICABLE;
+                        (new_row -> expression).primitive = INTEGER_TYPE;
+                        t -> typeExpression = new_row;
                     }
-                    else if ((row -> expression).rectArray.ranges[dim][1].isVarId && getToken((row -> expression).rectArray.ranges[dim][1].value.varIdIndex) != VAR_ID) {
+                    else if ((row -> expression).rectArray.ranges[dim][1].isVarId && search_typeExpTable((row -> expression).rectArray.ranges[dim][1].value.varIdIndex, T) == NULL) {
                         // error
                         printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "RECTARRAY", "***", "***", t -> depth, "RA undefined index");
+                        new_row -> typeVariable = ERROR;
+                        new_row -> rectArrayType = NOT_APPLICABLE;
+                        (new_row -> expression).primitive = INTEGER_TYPE;
+                        t -> typeExpression = new_row;
                     }
                     else if (!(row -> expression).rectArray.ranges[dim][1].isVarId && (row -> expression).rectArray.ranges[dim][1].value.intIndex < idx) {
                         // error
                         printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "RECTARRAY", "***", "***", t -> depth, "RA index out of bounds");
+                        new_row -> typeVariable = ERROR;
+                        new_row -> rectArrayType = NOT_APPLICABLE;
+                        (new_row -> expression).primitive = INTEGER_TYPE;
+                        t -> typeExpression = new_row;
                     }
                 }
-                else if (getToken(temp -> children[0] -> children[0] -> token -> symbol) != VAR_ID) {
+                else if (search_typeExpTable(temp -> children[0] -> children[0] -> sourceToken, T) == NULL) {
                     // check for valid variable name
                     // error
                     printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "RECTARRAY", "***", "***", t -> depth, "invalid variable name");
+                    new_row -> typeVariable = ERROR;
+                    new_row -> rectArrayType = NOT_APPLICABLE;
+                    (new_row -> expression).primitive = INTEGER_TYPE;
+                    t -> typeExpression = new_row;
                 }
                 dim++;           
                 //
@@ -411,12 +436,16 @@ void handleElement(parseNode* t, typeExpressionTable T) {
             if (dim < (row -> expression).rectArray.dimensions) {
                 // error
                 printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "RECTARRAY", "***", "***", t -> depth, "RA index out of bounds");
+                new_row -> typeVariable = ERROR;
+                new_row -> rectArrayType = NOT_APPLICABLE;
+                (new_row -> expression).primitive = INTEGER_TYPE;
+                t -> typeExpression = new_row;
             }
 
             if (new_row -> typeVariable != ERROR) {
                 new_row -> typeVariable = PRIMITIVE;
                 new_row -> rectArrayType = NOT_APPLICABLE;
-                (new_row -> expression).primitive = INTEGER;
+                (new_row -> expression).primitive = INTEGER_TYPE;
                 t -> typeExpression = new_row;
             }
         }
@@ -425,10 +454,14 @@ void handleElement(parseNode* t, typeExpressionTable T) {
         else if(row -> typeVariable == JAGGEDARRAY) {
             // handle only R1 range
             if (temp -> children[0] -> children[0] -> token -> tokenID == NUM) {
-                int idx = atoi(temp -> children[0] -> children[0] -> token -> symbol);
+                int idx = atoi(temp -> children[0] -> children[0] -> sourceToken);
                 if (idx < (row -> expression).jaggedArray.R1_range[0] || idx > (row -> expression).jaggedArray.R1_range[1]) {
                     // error
                     printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "JAGARRAY", "***", "***", t -> depth, "JA index out of bounds");
+                    new_row -> typeVariable = ERROR;
+                    new_row -> rectArrayType = NOT_APPLICABLE;
+                    (new_row -> expression).primitive = INTEGER_TYPE;
+                    t -> typeExpression = new_row;
                 }
                 temp = temp -> children[1];
 
@@ -437,12 +470,20 @@ void handleElement(parseNode* t, typeExpressionTable T) {
                     if (temp -> children[1] -> num_child == 2) {
                         // error
                         printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "JAGARRAY", "***", "***", t -> depth, "JA invalid dimensions");
+                        new_row -> typeVariable = ERROR;
+                        new_row -> rectArrayType = NOT_APPLICABLE;
+                        (new_row -> expression).primitive = INTEGER_TYPE;
+                        t -> typeExpression = new_row;
                     }
                     if (temp -> children[1] -> children[0] -> token -> tokenID == NUM) {
-                        int idx2 = atoi(temp -> children[1] -> children[0] -> children[0] -> token -> symbol);
+                        int idx2 = atoi(temp -> children[1] -> children[0] -> children[0] -> sourceToken);
                         if(idx2 > (row -> expression).jaggedArray.R2_ranges.range_2d[idx - (row -> expression).jaggedArray.R1_range[0]] - 1) {
                             //error
-                            printf("ERROR: %2d Declaration Statement *** *** *** *** *** %3d 3D JA excess elements\n", t->token->lineNumber, t->depth);
+                            printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "JAGARRAY", "***", "***", t -> depth, "3D JA size mismatch");
+                            new_row -> typeVariable = ERROR;
+                            new_row -> rectArrayType = NOT_APPLICABLE;
+                            (new_row -> expression).primitive = INTEGER_TYPE;
+                            t -> typeExpression = new_row;
                         }
                     }
                 }
@@ -450,46 +491,89 @@ void handleElement(parseNode* t, typeExpressionTable T) {
                     // 3 dim jagged array
                     if (temp -> children[1] -> num_child == 1) {
                         // error
-                        printf("ERROR: %2d Declaration Statement *** *** *** *** *** %3d 3D JA too few dimensions\n", t->token->lineNumber, t->depth);
+                        printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "JAGARRAY", "***", "***", t -> depth, "3D JA too few dimensions");
+                        new_row -> typeVariable = ERROR;
+                        new_row -> rectArrayType = NOT_APPLICABLE;
+                        (new_row -> expression).primitive = INTEGER_TYPE;
+                        t -> typeExpression = new_row;
                     }
                     //R2 range
                     if (temp -> children[1] -> children[0] -> children[0] -> token -> tokenID == NUM) {
-                        int idx2 = atoi(temp -> children[1] -> children[0] -> children[0] -> token -> symbol);
+                        int idx2 = atoi(temp -> children[1] -> children[0] -> children[0] -> sourceToken);
                         if(idx2 > (row -> expression).jaggedArray.R2_ranges.range_3d[idx - (row -> expression).jaggedArray.R1_range[0]][0] - 1) {
                             //error
-                            printf("ERROR: %2d Declaration Statement *** *** *** *** *** %3d 3D JA index out of bounds\n", t->token->lineNumber, t->depth);
+                            printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "JAGARRAY", "***", "***", t -> depth, "3D JA index out of bounds");
+                            new_row -> typeVariable = ERROR;
+                            new_row -> rectArrayType = NOT_APPLICABLE;
+                            (new_row -> expression).primitive = INTEGER_TYPE;
+                            t -> typeExpression = new_row;
                         }
                     
                         //R3 range
                         if (temp -> children[1] -> children[1] -> children[0] -> children[0] -> token -> tokenID) {
-                            int idx3 = atoi(temp -> children[1] -> children[1] -> children[0] -> children[0] -> token -> symbol);
+                            int idx3 = atoi(temp -> children[1] -> children[1] -> children[0] -> children[0] -> sourceToken);
                             if(idx3 > (row -> expression).jaggedArray.R2_ranges.range_3d[idx - (row -> expression).jaggedArray.R1_range[0]][idx2] - 1) {
                                 //error
-                                printf("ERROR: %2d Declaration Statement *** *** *** *** *** %3d 3D JA index out of bounds\n", t->token->lineNumber, t->depth);
+                                printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "JAGARRAY", "***", "***", t -> depth, "3D JA index out of bounds");
+                                new_row -> typeVariable = ERROR;
+                                new_row -> rectArrayType = NOT_APPLICABLE;
+                                (new_row -> expression).primitive = INTEGER_TYPE;
+                                t -> typeExpression = new_row;
                             }
                         }
                     }
-                    else if (getToken(temp -> children[1] -> children[0] -> children[0] -> token -> symbol) != VAR_ID) {
+                    else if (search_typeExpTable(temp -> children[1] -> children[0] -> children[0] -> sourceToken, T) == NULL) {
                         // check for valid variable name
                         // error
+                        printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "NA", "***", "***", t -> depth, "invalid variable name");
+                        new_row -> typeVariable = ERROR;
+                        new_row -> rectArrayType = NOT_APPLICABLE;
+                        (new_row -> expression).primitive = INTEGER_TYPE;
+                        t -> typeExpression = new_row;
                     }
                 }
             }
-            else if (getToken(temp -> children[0] -> children[0] -> token -> symbol) != VAR_ID) {
+            else if (search_typeExpTable(temp -> children[0] -> children[0] -> sourceToken, T) == NULL) {
                 // check for valid variable name
                 // error
+                printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "NA", "***", "***", t -> depth, "invalid variable name");
+                new_row -> typeVariable = ERROR;
+                new_row -> rectArrayType = NOT_APPLICABLE;
+                (new_row -> expression).primitive = INTEGER_TYPE;
+                t -> typeExpression = new_row;
             }
 
             if (new_row -> typeVariable != ERROR) {
                 new_row -> typeVariable = PRIMITIVE;
                 new_row -> rectArrayType = NOT_APPLICABLE;
-                (new_row -> expression).primitive = INTEGER;
+                (new_row -> expression).primitive = INTEGER_TYPE;
                 t -> typeExpression = new_row;
             }
         }
         else {
             //error
+            printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, (t->typeExpression->expression).primitive, "***", "***", t -> depth, "check this");
+            new_row -> typeVariable = ERROR;
+            new_row -> rectArrayType = NOT_APPLICABLE;
+            (new_row -> expression).primitive = INTEGER_TYPE;
+            t -> typeExpression = new_row;
         }
+    }
+}
+
+void handleTerm(parseNode* t, typeExpressionTable T) {
+    if (t -> children[0] -> token -> tokenID == NUM) {
+        // NUM
+        typeExpressionRow* row = (typeExpressionRow*)malloc(sizeof(typeExpressionRow));
+        row -> typeVariable = PRIMITIVE;
+        row -> rectArrayType = NOT_APPLICABLE;
+        (row -> expression).primitive = INTEGER_TYPE;
+        t -> typeExpression = row;
+    }
+    else {
+        // element
+        handleElement(t -> children[0], T);
+        t -> typeExpression = t -> children[0] -> typeExpression;
     }
 }
 
@@ -499,6 +583,76 @@ void handleMulLogicExpr(parseNode* t, typeExpressionTable T) {
         t -> typeExpression = t -> children[1] -> typeExpression;
         return;
     }
+    stack head = malloc(sizeof(struct parserStack));
+    head -> parseTreeNode = t;
+    head -> next = NULL;
+    parseNode* temp = t -> children[1]; // mulOptional
+    while(temp -> num_child == 3) {
+        stack node = malloc(sizeof(struct parserStack));
+        node -> parseTreeNode = temp;
+        node -> next = NULL;
+        head = push(node, head);
+        temp = temp -> children[2];
+    }
+    typeExpressionRow* prev = NULL;
+    int prevMulOp = -1;
+    while(head -> parseTreeNode != t) {
+        handleTerm(head -> parseTreeNode -> children[1], T);
+        if(prev == NULL) {
+            head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[1] -> typeExpression;
+            prev = head -> parseTreeNode -> typeExpression;
+            prevMulOp = head -> parseTreeNode -> children[0] -> token -> tokenID == MUL_OP;
+        }
+        else {
+            if(prev -> typeVariable == ERROR) {
+                //Error propagation
+                head -> parseTreeNode -> typeExpression = prev;
+            }
+            else if(prev -> expression.primitive == BOOLEAN_TYPE) {
+                //errorsourceToken
+                printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "BOOLEAN", "***", "***", t -> depth, "Booleans can't be multiplied");
+            }
+            else if(compTypeExp(prev, head -> parseTreeNode -> children[1] -> typeExpression) == 0) {
+                //error
+                //set prev as error also
+                printf("ERROR: %2d %25s %3s %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "*/", t->token->symbol, prev->typeVariable, head->parseTreeNode -> children[1]->token->symbol, head -> parseTreeNode -> children[1] -> typeExpression->typeVariable, t -> depth, "inval");
+            }
+            else if ((head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive == BOOLEAN_TYPE) {
+                //error 
+                printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, (t->typeExpression->expression).primitive, "***", "***", t -> depth, "Booleans can't be multiplied");
+                //set prev as error also
+                prev -> typeVariable = ERROR;
+                prev -> rectArrayType = NOT_APPLICABLE;
+                prev -> expression.primitive = INTEGER_TYPE; 
+            }
+            else  {
+                if(prevMulOp) {
+                    head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[1] -> typeExpression;
+                    prev = head -> parseTreeNode -> typeExpression;
+                }
+                else {
+                    typeExpressionRow* typeExpression = malloc(sizeof(typeExpressionRow));
+                    typeExpression -> expression = head -> parseTreeNode -> children[1] -> typeExpression -> expression;
+                    typeExpression -> rectArrayType = head -> parseTreeNode -> children[1] -> typeExpression -> rectArrayType;
+                    typeExpression -> typeVariable = head -> parseTreeNode -> children[1] -> typeExpression -> typeVariable;
+                    if(typeExpression -> typeVariable == PRIMITIVE)
+                        typeExpression -> expression.primitive = REAL_TYPE;
+                    else if(typeExpression -> typeVariable == RECTARRAY)
+                        typeExpression -> expression.rectArray.basicElementType = REAL_TYPE;
+                    else 
+                        typeExpression -> expression.jaggedArray.basicElementType = REAL_TYPE;
+                    prev = typeExpression;
+                }
+                prevMulOp = head -> parseTreeNode -> children[0] -> token -> tokenID == MUL_OP;
+            }
+        }
+        stack top = head;
+        head = pop(head);
+        free(top);
+    }
+}
+
+void handleAddLogicExpr(parseNode* t, typeExpressionTable T) {
     handleMulLogicExpr(t -> children[0], T);
     if(t -> children[1] -> num_child == 1 || t -> children[0] -> typeExpression -> typeVariable == ERROR) {
         t -> typeExpression = t -> children[1] -> typeExpression;
@@ -517,9 +671,11 @@ void handleMulLogicExpr(parseNode* t, typeExpressionTable T) {
     }
     typeExpressionRow* prev = NULL;
     while(head -> parseTreeNode != t) {
-        handleAndLogicExpr(head -> parseTreeNode -> children[1], T);
-        if(prev == NULL) 
+        handleMulLogicExpr(head -> parseTreeNode -> children[1], T);
+        if(prev == NULL) {
             head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[1] -> typeExpression;
+            prev = head -> parseTreeNode -> typeExpression;
+        }
         else {
             if(prev -> typeVariable == ERROR) {
                 //Error propagation
@@ -527,30 +683,51 @@ void handleMulLogicExpr(parseNode* t, typeExpressionTable T) {
             }
             else if(prev -> expression.primitive == BOOLEAN) {
                 //error
+                printf("ERROR: %2d %25s %3s %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "|||", t->token->symbol, prev->expression.primitive, "***", "***", t -> depth, "invalid type for operator");
+                //set prev as error
+                prev -> typeVariable = ERROR;
+                prev -> rectArrayType = NOT_APPLICABLE;
+                prev -> expression.primitive = INTEGER_TYPE; 
+                //set prev as error
             }
             else if(compTypeExp(prev, head -> parseTreeNode -> children[1] -> typeExpression) == 0) {
                 //error
+                printf("ERROR: %2d %25s %3s %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "|||", t->token->symbol, prev->expression.primitive, "***", "***", t -> depth, "invalid type for operator");
+                //set prev as error
+                prev -> typeVariable = ERROR;
+                prev -> rectArrayType = NOT_APPLICABLE;
+                prev -> expression.primitive = INTEGER_TYPE; 
+                //set prev as error
             }
             else if ((head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive == BOOLEAN) {
                //error 
+               printf("ERROR: %2d %25s %3s %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "|||", t->token->symbol, prev->expression.primitive, "***", "***", t -> depth, "invalid type for operator");
+                //set prev as error
+                prev -> typeVariable = ERROR;
+                prev -> rectArrayType = NOT_APPLICABLE;
+                prev -> expression.primitive = INTEGER_TYPE; 
+               //set prev as error
             }
             else  {
                 head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[1] -> typeExpression;
+                prev = head -> parseTreeNode -> typeExpression;
             }
         }
-        prev = head -> parseTreeNode -> typeExpression;
         stack top = head;
         head = pop(head);
         free(top);
     }
     if(prev -> expression.primitive != BOOLEAN) {
         //error
+        printf("ERROR: %2d %25s %3s %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "|||", t->token->symbol, prev->expression.primitive, "***", "***", t -> depth, "invalid type for operator");
     }
     else if(compTypeExp(prev, head -> parseTreeNode -> children[0] -> typeExpression) == 0) {
         //error
+        printf("ERROR: %2d %25s %3s %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "|||", t->token->symbol, prev->expression.primitive, "***", "***", t -> depth, "invalid type for operator");
     }
     else if((head -> parseTreeNode -> children[0] -> typeExpression -> expression).primitive == BOOLEAN) {
         //error
+        printf("ERROR: %2d %25s %3s %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "|||", t->token->symbol, prev->expression.primitive, "***", "***", t -> depth, "invalid type for operator");
     }
     else {
         head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[0] -> typeExpression;
@@ -602,33 +779,47 @@ void handleAndLogicExpr(parseNode* t, typeExpressionTable T) {
     typeExpressionRow* prev = NULL;
     while(head -> parseTreeNode != t) {
         handleAndLogicExpr(head -> parseTreeNode -> children[1], T);
-        if(prev == NULL) 
+        if(prev == NULL) {
             head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[1] -> typeExpression;
+            prev = head -> parseTreeNode -> typeExpression;
+        }
         else {
             if(prev -> typeVariable == ERROR) {
                 //Error propagation
                 head -> parseTreeNode -> typeExpression = prev;
             }
-            else if(prev -> expression.primitive != BOOLEAN) {
+            else if(prev -> expression.primitive != BOOLEAN_TYPE) {
                 //error
+                printf("ERROR: %2d %25s %3s %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "|||", t->token->symbol, prev->expression.primitive, "***", "***", t -> depth, "invalid type for operator");
+                //set prev as error
+                prev -> typeVariable = ERROR;
+                prev -> rectArrayType = NOT_APPLICABLE;
+                prev -> expression.primitive = INTEGER_TYPE; 
             }
-           else if ((head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive != BOOLEAN) {
+           else if ((head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive != BOOLEAN_TYPE) {
                //error 
+               printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", head -> parseTreeNode -> children[1] ->token -> symbol, head -> parseTreeNode -> children[1] -> typeExpression -> expression.primitive, "***", "***", t -> depth, "invalid type for operator");
+               //set prev as error
+               prev -> typeVariable = ERROR;
+               prev -> rectArrayType = NOT_APPLICABLE;
+               prev -> expression.primitive = INTEGER_TYPE; 
            }
             else  {
                 head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[1] -> typeExpression;
+                prev = head -> parseTreeNode -> typeExpression;
             }
         }
-        prev = head -> parseTreeNode -> typeExpression;
         stack top = head;
         head = pop(head);
         free(top);
     }
-    if(prev -> expression.primitive != BOOLEAN) {
+    if(prev -> expression.primitive != BOOLEAN_TYPE) {
         //error
+        printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, prev -> expression.primitive, "***", "***", t -> depth, "invalid type for operator");
     }
-    else if((head -> parseTreeNode -> children[0] -> typeExpression -> expression).primitive != BOOLEAN) {
+    else if((head -> parseTreeNode -> children[0] -> typeExpression -> expression).primitive != BOOLEAN_TYPE) {
         //error
+        printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", head -> parseTreeNode -> children[0] -> token -> symbol, (head -> parseTreeNode -> children[0] -> typeExpression -> expression).primitive, "***", "***", t -> depth, "invalid type for operator");
     }
     else {
         head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[0] -> typeExpression;
@@ -658,33 +849,46 @@ void handleOrLogicExpr(parseNode* t, typeExpressionTable T) {
     typeExpressionRow* prev = NULL;
     while(head -> parseTreeNode != t) {
         handleAndLogicExpr(head -> parseTreeNode -> children[1], T);
-        if(prev == NULL) 
+        if(prev == NULL) {
             head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[1] -> typeExpression;
+            prev = head -> parseTreeNode -> typeExpression;
+        }
         else {
             if(prev -> typeVariable == ERROR) {
                 //Error propagation
                 head -> parseTreeNode -> typeExpression = prev;
             }
-            else if(prev -> expression.primitive != BOOLEAN) {
+            else if(prev -> expression.primitive != BOOLEAN_TYPE) {
                 //error
+                printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, prev -> expression.primitive, "***", "***", t -> depth, "invalid type for operator");
+                //set prev as error
+                prev -> typeVariable = ERROR;
+                prev -> rectArrayType = NOT_APPLICABLE;
+                prev -> expression.primitive = INTEGER_TYPE; 
             }
-           else if ((head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive != BOOLEAN) {
-               //error 
+           else if ((head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive != BOOLEAN_TYPE) {
+                //error
+                printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", head -> parseTreeNode -> children[1]->token->symbol, (head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive, "***", "***", t -> depth, "invalid type for operator");
+                //set prev as error
+                prev -> typeVariable = ERROR;
+                prev -> rectArrayType = NOT_APPLICABLE;
+                prev -> expression.primitive = INTEGER_TYPE;
            }
             else  {
                 head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[1] -> typeExpression;
+                prev = head -> parseTreeNode -> typeExpression;
             }
         }
-        prev = head -> parseTreeNode -> typeExpression;
         stack top = head;
         head = pop(head);
         free(top);
     }
-    if(prev -> expression.primitive != BOOLEAN) {
-        //error
+    if(prev -> expression.primitive != BOOLEAN_TYPE) {
+        
     }
-    else if((head -> parseTreeNode -> children[0] -> typeExpression -> expression).primitive != BOOLEAN) {
+    else if((head -> parseTreeNode -> children[0] -> typeExpression -> expression).primitive != BOOLEAN_TYPE) {
         //error
+        printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", head -> parseTreeNode -> children[1]->token->symbol, (head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive, "***", "***", t -> depth, "invalid type for operator");
     }
     else {
         head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[0] -> typeExpression;
@@ -702,6 +906,7 @@ void handleAssignmentStmt(parseNode* t, typeExpressionTable T) {
     t -> children[2] -> typeExpression = t -> children[2] -> children[0] -> typeExpression;
     if(compTypeExp(t -> children[0] -> typeExpression, t -> children[2] -> typeExpression) == 0) {
         //error
+        printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->children[0]->token->symbol, t->children[0]->typeExpression->typeVariable, t->children[2]->token->symbol, t->children[2]->typeExpression->typeVariable, t -> depth, "type mismatch");
     }
     else {
         t -> typeExpression = t -> children[0] -> typeExpression;

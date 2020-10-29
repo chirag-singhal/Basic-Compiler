@@ -15,9 +15,9 @@
 
 // TYPEEXPRESSIONROW
 typedef enum _basicElementTypeEnum {
-    INTEGER,
-    REAL,
-    BOOLEAN
+    INTEGER_TYPE,
+    REAL_TYPE,
+    BOOLEAN_TYPE
 } basicElementTypeEnum;
 
 union rectArrayIndexUnion {
@@ -79,6 +79,7 @@ typedef struct tokenNode* parserStackNode;
 typedef struct _parseNode {
     struct tokenNode* token;
     int terminal;
+    char* sourceToken;
     typeExpressionRow* typeExpression;
     int grammar_rule_idx; // 1-based index
     int depth;
