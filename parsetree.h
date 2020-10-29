@@ -1,3 +1,11 @@
+/*
+    Group Number: 56
+    Chirag Singhal 2018A7PS0219P
+    Harshan Baskar 2018A7PS0166P
+    Nitya Mangal   2018A7PS0216P
+*/
+
+
 #ifndef PARSETREE_H
 #define PARSETREE_H
 
@@ -68,26 +76,6 @@ typedef struct _typeExpressionRow {
 // PARSETREE
 typedef struct tokenNode* parserStackNode;
 
-struct parserStack {
-    parserStackNode token;
-    int terminal;
-    struct _parseNode* parseTreeNode;  
-    //struct parserStack* prev;  
-    struct parserStack* next;
-};
-
-typedef struct parserStack* stack;
-
-/*
-OK - Symbol name
-OK - Whether terminal or non terminal
-OK - Type expression stored in the corresponding node (if non-leaf)
-OK - Name of lexeme (if leaf node)
-OK - Line number (if leaf node)
-OK - Grammar rule applied for expansion of this node while parsing (if non leaf)
-OK - Depth of node (root of the parse tree at depth 0)
-*/
-
 typedef struct _parseNode {
     struct tokenNode* token;
     int terminal;
@@ -100,6 +88,16 @@ typedef struct _parseNode {
 } parseNode;
 
 typedef parseNode parseTree;
+
+struct parserStack {
+    parserStackNode token;
+    int terminal;
+    struct _parseNode* parseTreeNode;  
+    //struct parserStack* prev;  
+    struct parserStack* next;
+};
+
+typedef struct parserStack* stack;
 
 extern void createParseTree(parseTree *t, tokenStream *s, grammar G);
 
