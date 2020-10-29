@@ -10,6 +10,18 @@
 
 #define MAX_SIZE 50
 
+
+char* getLexemesFromType(typeVariableEnum typeVariable) {
+    if (typeVariable == PRIMITIVE)
+        return "PRIMITIVE";
+    else if (typeVariable == RECTARRAY)
+        return "RECTARRAY";
+    else if (typeVariable == JAGGEDARRAY)
+        return "JAGGEDARRAY";
+    else
+        return "ERROR";
+}
+
 typeExpressionRow* search_typeExpTable(char* symbol, typeExpressionTable T) {
     while (T != NULL) {
         if (strcmp(T -> symbol, symbol) == 0)
@@ -21,17 +33,32 @@ typeExpressionRow* search_typeExpTable(char* symbol, typeExpressionTable T) {
 }
 
 void push_typeExpTable(char* symbol, typeExpressionRow* row, typeExpressionTable T) {
-    if (T -> symbol == NULL) {
+    //if (T -> symbol == NULL) {
+    if (T == NULL) {
         T = (typeExpressionTable)malloc(sizeof(typeExpressionTableNode));
-        T -> symbol = malloc(sizeof(char) * MAX_SIZE);
-        strcpy(T -> symbol, symbol);
+        // T -> symbol = malloc(sizeof(char) * MAX_SIZE);
+        // strcpy(T -> symbol, symbol);
+        T -> symbol = symbol;
         T -> row = row;
+        T -> next = NULL;
+        T -> prev = NULL;
         return;
     }
+    else if (T -> symbol == NULL) {
+        // T -> symbol = malloc(sizeof(char) * MAX_SIZE);
+        // strcpy(T -> symbol, symbol);
+        T -> symbol = symbol;
+        T -> row = row;
+        T -> next = NULL;
+        T -> prev = NULL;
+        return;
+    }
+
     while (T -> next != NULL) {
         T = T -> next;
     }
     T -> next = (typeExpressionTable)malloc(sizeof(typeExpressionTableNode));
+    T -> next -> next = NULL;
     T -> next -> prev = T;
     T = T -> next;
     // T -> symbol = malloc(sizeof(char) * MAX_SIZE);
@@ -55,7 +82,7 @@ void handleDeclarativeStmt(parseNode* t, typeExpressionTable T) {
             //INTEGER
             (t -> children[1] -> typeExpression -> expression).primitive = INTEGER_TYPE;
         }
-        else if (t -> children[1] -> children[0] -> children[0] -> children[0] -> token -> tokenID == BOOLEAN_TYPE) {
+        else if (t -> children[1] -> children[0] -> children[0] -> children[0] -> token -> tokenID == BOOLEAN) {
             //BOOLEAN
             (t -> children[1] -> typeExpression -> expression).primitive = BOOLEAN_TYPE;
         }
@@ -74,7 +101,7 @@ void handleDeclarativeStmt(parseNode* t, typeExpressionTable T) {
             parseNode* temp = t -> children[0] -> children[1] -> children[3];
             while (temp -> num_child == 2) {
                 push_typeExpTable(temp -> children[0] -> sourceToken, t -> children[1] -> typeExpression, T);
-                temp = temp -> children[0];
+                temp = temp -> children[1];
             }
         }
     }
@@ -94,7 +121,7 @@ void handleDeclarativeStmt(parseNode* t, typeExpressionTable T) {
             if(temp -> children[1] -> children[0] -> token -> tokenID == VAR_ID) {
                 // check if VAR_ID is INTEGER from type expression table
                 typeExpressionRow* row = search_typeExpTable(temp -> children[1] -> children[0] -> sourceToken, T);
-                if (row -> typeVariable != PRIMITIVE || (row -> expression).primitive != INTEGER_TYPE) {
+                if (row == NULL || row -> typeVariable != PRIMITIVE || (row -> expression).primitive != INTEGER_TYPE) {
                     // error
                     //lineNumber, statement type, operator, firstOperandLexeme, type,
                     //secondOperandLexeme, type, position in parse tree, message 
@@ -110,7 +137,7 @@ void handleDeclarativeStmt(parseNode* t, typeExpressionTable T) {
             // second range index
             if(temp -> children[3] -> children[0] -> token -> tokenID == VAR_ID) {
                 typeExpressionRow* row = search_typeExpTable(temp -> children[3] -> children[0] -> sourceToken, T);
-                if (row -> typeVariable != PRIMITIVE || (row -> expression).primitive != INTEGER_TYPE) {
+                if (row == NULL || row -> typeVariable != PRIMITIVE || (row -> expression).primitive != INTEGER_TYPE) {
                     // error
                     printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Declaration statement", t->token->symbol, row->typeVariable, "***", "***", t -> depth, "RA type mismatch");
                 }
@@ -142,7 +169,7 @@ void handleDeclarativeStmt(parseNode* t, typeExpressionTable T) {
             parseNode* temp = t -> children[0] -> children[1] -> children[3];
             while (temp -> num_child == 2) {
                 push_typeExpTable(temp -> children[0] -> sourceToken, t -> children[1] -> typeExpression, T);
-                temp = temp -> children[0];
+                temp = temp -> children[1];
             }
         }
     }
@@ -243,28 +270,26 @@ void handleDeclarativeStmt(parseNode* t, typeExpressionTable T) {
             parseNode* temp = t -> children[0] -> children[1] -> children[3];
             while (temp -> num_child == 2) {
                 push_typeExpTable(temp -> children[0] -> sourceToken, t -> children[1] -> typeExpression, T);
-                temp = temp -> children[0];
+                temp = temp -> children[1];
             }
         }
     }
 }
 
-int compTypeExp(typeExpressionRow* r1, typeExpressionRow* r2){
+int compTypeExp(typeExpressionRow* r1, typeExpressionRow* r2) {
     if(r1 -> typeVariable != r2 -> typeVariable)
         return 0;
-    else if(r1 -> rectArrayType != r2 -> rectArrayType)
+    else if(r1 -> typeVariable == RECTARRAY && r1 -> rectArrayType != r2 -> rectArrayType)
         return 0;
-    else
-    {
+    else {
         //primitive
-        if(r1 -> typeVariable == PRIMITIVE)
-        {
-            if((r1 -> expression).primitive != (r2 -> expression).primitive)
+        if(r1 -> typeVariable == PRIMITIVE) {
+            if((r1 -> expression).primitive != (r2 -> expression).primitive) {
                 return 0;
+            }
         }
         //rectangular
-        else if(r1 -> typeVariable == RECTARRAY)
-        {
+        else if(r1 -> typeVariable == RECTARRAY) {
             int dim = (r1->expression).rectArray.dimensions;
             if((r1->expression).rectArray.dimensions != (r2->expression).rectArray.dimensions)
                 return 0;
@@ -279,32 +304,28 @@ int compTypeExp(typeExpressionRow* r1, typeExpressionRow* r2){
             for(int i=0; i<dim; i++){
                 //low...high
                 //for low
-                if(v1 == 0)
-                {
+                if(v1 == 0) {
                     if((r1->expression).rectArray.ranges[i][0].value.intIndex != (r2->expression).rectArray.ranges[i][0].value.intIndex)
                         return 0;
                 }
-                else if(v1 == 1)
-                {
+                else if(v1 == 1) {
                     if(!strcmp((r1->expression).rectArray.ranges[i][0].value.varIdIndex, (r2->expression).rectArray.ranges[i][0].value.varIdIndex))
                         return 0;
                 }
                 //for high
-                if(v1 == 0)
-                {
+                if(v1 == 0) {
                     if((r1->expression).rectArray.ranges[i][1].value.intIndex != (r2->expression).rectArray.ranges[i][1].value.intIndex)
                         return 0;
                 }
-                else if(v1 == 1)
-                {
+                else if(v1 == 1) {
                     if(!strcmp((r1->expression).rectArray.ranges[i][1].value.varIdIndex, (r2->expression).rectArray.ranges[i][1].value.varIdIndex))
                         return 0;
                 }
             }
+            printf("sasa\n");
         }
         //jagged
-        else if(r1 -> typeVariable == JAGGEDARRAY)
-        {
+        else if(r1 -> typeVariable == JAGGEDARRAY) {
             int dim = (r1->expression).jaggedArray.dimensions;
             if((r1->expression).jaggedArray.dimensions != (r2->expression).jaggedArray.dimensions)
                 return 0;
@@ -312,26 +333,21 @@ int compTypeExp(typeExpressionRow* r1, typeExpressionRow* r2){
                 return 0;
             else if((r1->expression).jaggedArray.R1_range[0]!=(r2->expression).jaggedArray.R1_range[0] || (r1->expression).jaggedArray.R1_range[1]!=(r2->expression).jaggedArray.R1_range[1])
                 return 0;
-            if(dim == 2)
-            {
+            if(dim == 2) {
                 int num = (r1->expression).jaggedArray.R1_range[1] - (r1->expression).jaggedArray.R1_range[0];
-                for(int i=0; i<num; i++)
-                {
+                for(int i=0; i<num; i++) {
                     if((r1->expression).jaggedArray.R2_ranges.range_2d[i] != (r2->expression).jaggedArray.R2_ranges.range_2d[i])
                         return 0;
                 }
             }
-            else if(dim == 3)
-            {
+            else if(dim == 3) {
                 int dim2 = (r1->expression).jaggedArray.R1_range[1] - (r1->expression).jaggedArray.R1_range[0];
-                for(int i = 0; i < dim2; i++)
-                {
+                for(int i = 0; i < dim2; i++) {
                     int size1 = (r1->expression).jaggedArray.R2_ranges.range_3d[i][0];
                     int size2 = (r2->expression).jaggedArray.R2_ranges.range_3d[i][0];
                     if(size1 != size2)
                         return 0;
-                    for(int j=1; j<size1; j++)
-                    {
+                    for(int j=1; j<size1; j++) {
                         if((r1->expression).jaggedArray.R2_ranges.range_3d[i][j] != (r2->expression).jaggedArray.R2_ranges.range_3d[i][j])
                             return 0;
                     }
@@ -343,7 +359,10 @@ int compTypeExp(typeExpressionRow* r1, typeExpressionRow* r2){
 }
     
 void handleElement(parseNode* t, typeExpressionTable T) {
-    typeExpressionRow* row = search_typeExpTable(t -> children[0] -> sourceToken, T);
+    t -> token -> lineNumber = t -> children[0] -> token -> lineNumber;
+
+    //t = element
+    typeExpressionRow* row = search_typeExpTable(t -> children[0] -> sourceToken, T);  //VAR_ID
     
     // if any error, set this new_row to be ERROR and return
     typeExpressionRow* new_row = (typeExpressionRow*)malloc(sizeof(typeExpressionRow));
@@ -356,14 +375,13 @@ void handleElement(parseNode* t, typeExpressionTable T) {
         // error - variable does not exist
         //lineNumber, statement type, operator, firstOperandLexeme, type,
         //secondOperandLexeme, type, position in parse tree, message
-        printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "INVALID", "***", "***", t -> depth, "Variable does not exist");
+        printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t -> children[0] -> sourceToken, "INVALID", "***", "***", t -> depth, "Variable does not exist");
         new_row -> typeVariable = ERROR;
         new_row -> rectArrayType = NOT_APPLICABLE;
         (new_row -> expression).primitive = INTEGER;
         t -> typeExpression = new_row;
     }
-
-    if (t -> children[1] -> num_child == 1) {
+    else if (t -> children[1] -> num_child == 1) {
         // single variable
         t -> typeExpression = row;
     }
@@ -403,7 +421,7 @@ void handleElement(parseNode* t, typeExpressionTable T) {
                         (new_row -> expression).primitive = INTEGER_TYPE;
                         t -> typeExpression = new_row;
                     }
-                    else if ((row -> expression).rectArray.ranges[dim][1].isVarId && search_typeExpTable((row -> expression).rectArray.ranges[dim][1].value.varIdIndex, T) == NULL) {
+                    else if ((row -> expression).rectArray.ranges[dim][1].isVarId && (search_typeExpTable((row -> expression).rectArray.ranges[dim][1].value.varIdIndex, T) == NULL)) {
                         // error
                         printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "RECTARRAY", "***", "***", t -> depth, "RA undefined index");
                         new_row -> typeVariable = ERROR;
@@ -563,6 +581,7 @@ void handleElement(parseNode* t, typeExpressionTable T) {
 
 void handleTerm(parseNode* t, typeExpressionTable T) {
     if (t -> children[0] -> token -> tokenID == NUM) {
+        t -> token -> lineNumber = t -> children[0] -> token -> lineNumber;
         // NUM
         typeExpressionRow* row = (typeExpressionRow*)malloc(sizeof(typeExpressionRow));
         row -> typeVariable = PRIMITIVE;
@@ -573,14 +592,16 @@ void handleTerm(parseNode* t, typeExpressionTable T) {
     else {
         // element
         handleElement(t -> children[0], T);
+        t -> token -> lineNumber = t -> children[0] -> token -> lineNumber;
         t -> typeExpression = t -> children[0] -> typeExpression;
     }
 }
 
 void handleMulLogicExpr(parseNode* t, typeExpressionTable T) {
     handleTerm(t -> children[0], T);
+    t -> token -> lineNumber = t -> children[0] -> token -> lineNumber;
     if(t -> children[1] -> num_child == 1 || t -> children[0] -> typeExpression -> typeVariable == ERROR) {
-        t -> typeExpression = t -> children[1] -> typeExpression;
+        t -> typeExpression = t -> children[0] -> typeExpression;
         return;
     }
     stack head = malloc(sizeof(struct parserStack));
@@ -600,24 +621,27 @@ void handleMulLogicExpr(parseNode* t, typeExpressionTable T) {
         handleTerm(head -> parseTreeNode -> children[1], T);
         if(prev == NULL) {
             head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[1] -> typeExpression;
-            prev = head -> parseTreeNode -> typeExpression;
-            prevMulOp = head -> parseTreeNode -> children[0] -> token -> tokenID == MUL_OP;
+            prev = (typeExpressionRow*)malloc(sizeof(typeExpressionRow));
+            prev -> expression = head -> parseTreeNode -> typeExpression -> expression;
+            prev -> rectArrayType = head -> parseTreeNode -> typeExpression -> rectArrayType;
+            prev -> typeVariable = head -> parseTreeNode -> typeExpression -> typeVariable;
+            prevMulOp = head -> parseTreeNode -> children[0] -> children[0] -> token -> tokenID == MUL_OP;
         }
         else {
             if(prev -> typeVariable == ERROR) {
                 //Error propagation
                 head -> parseTreeNode -> typeExpression = prev;
             }
-            else if(prev -> expression.primitive == BOOLEAN_TYPE) {
+            else if(prev -> typeVariable == PRIMITIVE && prev -> expression.primitive == BOOLEAN_TYPE) {
                 //errorsourceToken
                 printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "BOOLEAN", "***", "***", t -> depth, "Booleans can't be multiplied");
             }
             else if(compTypeExp(prev, head -> parseTreeNode -> children[1] -> typeExpression) == 0) {
                 //error
                 //set prev as error also
-                printf("ERROR: %2d %25s %3s %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "*/", t->token->symbol, prev->typeVariable, head->parseTreeNode -> children[1]->token->symbol, head -> parseTreeNode -> children[1] -> typeExpression->typeVariable, t -> depth, "inval");
+                printf("ERROR: %2d %25s %3s %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "*/", t->token->symbol, prev->typeVariable, head->parseTreeNode -> children[1]->token->symbol, head -> parseTreeNode -> children[1] -> typeExpression->typeVariable, t -> depth, "type mismatch");
             }
-            else if ((head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive == BOOLEAN_TYPE) {
+            else if (head -> parseTreeNode -> children[0] -> typeExpression -> typeVariable == PRIMITIVE && (head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive == BOOLEAN_TYPE) {
                 //error 
                 printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, (t->typeExpression->expression).primitive, "***", "***", t -> depth, "Booleans can't be multiplied");
                 //set prev as error also
@@ -628,7 +652,9 @@ void handleMulLogicExpr(parseNode* t, typeExpressionTable T) {
             else  {
                 if(prevMulOp) {
                     head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[1] -> typeExpression;
-                    prev = head -> parseTreeNode -> typeExpression;
+                    prev -> expression = head -> parseTreeNode -> typeExpression -> expression;
+                    prev -> rectArrayType = head -> parseTreeNode -> typeExpression -> rectArrayType;
+                    prev -> typeVariable = head -> parseTreeNode -> typeExpression -> typeVariable;
                 }
                 else {
                     typeExpressionRow* typeExpression = malloc(sizeof(typeExpressionRow));
@@ -641,21 +667,69 @@ void handleMulLogicExpr(parseNode* t, typeExpressionTable T) {
                         typeExpression -> expression.rectArray.basicElementType = REAL_TYPE;
                     else 
                         typeExpression -> expression.jaggedArray.basicElementType = REAL_TYPE;
+                    head -> parseTreeNode -> typeExpression = typeExpression;
                     prev = typeExpression;
                 }
-                prevMulOp = head -> parseTreeNode -> children[0] -> token -> tokenID == MUL_OP;
+                prevMulOp = head -> parseTreeNode -> children[0] -> children[0] -> token -> tokenID == MUL_OP;
             }
         }
         stack top = head;
         head = pop(head);
         free(top);
     }
+    if(prev -> typeVariable == ERROR) {
+        //Error propagation
+        head -> parseTreeNode -> typeExpression = prev;
+    }
+    else if(prev -> typeVariable == PRIMITIVE && prev -> expression.primitive == BOOLEAN_TYPE) {
+        //errorsourceToken
+        printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, "BOOLEAN", "***", "***", t -> depth, "Booleans can't be multiplied");
+    }
+    else if(compTypeExp(prev, head -> parseTreeNode -> children[1] -> typeExpression) == 0) {
+        //error
+        //set prev as error also
+        printf("ERROR: %2d %25s %3s %20s %10s %20s %2d %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "*/", t->token->symbol, prev->typeVariable, head->parseTreeNode -> children[1]->token->symbol, head -> parseTreeNode -> children[1] -> typeExpression->typeVariable, t -> depth, "inval");
+    }
+    else if (head -> parseTreeNode -> children[0] -> typeExpression -> typeVariable == PRIMITIVE && (head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive == BOOLEAN_TYPE) {
+        //error 
+        printf("ERROR: %2d %25s *** %20s %10s %20s %2d %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, (t->typeExpression->expression).primitive, "***", "***", t -> depth, "Booleans can't be multiplied");
+        //set prev as error also
+        prev -> typeVariable = ERROR;
+        prev -> rectArrayType = NOT_APPLICABLE;
+        prev -> expression.primitive = INTEGER_TYPE; 
+    }
+    else  {
+        if(prevMulOp) {
+            head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[1] -> typeExpression;
+            prev -> expression = head -> parseTreeNode -> typeExpression -> expression;
+            prev -> rectArrayType = head -> parseTreeNode -> typeExpression -> rectArrayType;
+            prev -> typeVariable = head -> parseTreeNode -> typeExpression -> typeVariable;
+        }
+        else {
+            typeExpressionRow* typeExpression = malloc(sizeof(typeExpressionRow));
+            typeExpression -> expression = head -> parseTreeNode -> children[1] -> typeExpression -> expression;
+            typeExpression -> rectArrayType = head -> parseTreeNode -> children[1] -> typeExpression -> rectArrayType;
+            typeExpression -> typeVariable = head -> parseTreeNode -> children[1] -> typeExpression -> typeVariable;
+            if(typeExpression -> typeVariable == PRIMITIVE)
+                typeExpression -> expression.primitive = REAL_TYPE;
+            else if(typeExpression -> typeVariable == RECTARRAY)
+                typeExpression -> expression.rectArray.basicElementType = REAL_TYPE;
+            else 
+                typeExpression -> expression.jaggedArray.basicElementType = REAL_TYPE;
+            head -> parseTreeNode -> typeExpression = typeExpression;
+            prev = typeExpression;
+        }
+    }
+    stack top = head;
+    head = pop(head);
+    free(top);
 }
 
 void handleAddLogicExpr(parseNode* t, typeExpressionTable T) {
     handleMulLogicExpr(t -> children[0], T);
+    t -> token -> lineNumber = t -> children[0] -> token -> lineNumber;
     if(t -> children[1] -> num_child == 1 || t -> children[0] -> typeExpression -> typeVariable == ERROR) {
-        t -> typeExpression = t -> children[1] -> typeExpression;
+        t -> typeExpression = t -> children[0] -> typeExpression;
         return;
     }
     stack head = malloc(sizeof(struct parserStack));
@@ -674,21 +748,23 @@ void handleAddLogicExpr(parseNode* t, typeExpressionTable T) {
         handleMulLogicExpr(head -> parseTreeNode -> children[1], T);
         if(prev == NULL) {
             head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[1] -> typeExpression;
-            prev = head -> parseTreeNode -> typeExpression;
+            prev = (typeExpressionRow*)malloc(sizeof(typeExpressionRow));
+            prev -> expression = head -> parseTreeNode -> typeExpression -> expression;
+            prev -> rectArrayType = head -> parseTreeNode -> typeExpression -> rectArrayType;
+            prev -> typeVariable = head -> parseTreeNode -> typeExpression -> typeVariable;
         }
         else {
             if(prev -> typeVariable == ERROR) {
                 //Error propagation
                 head -> parseTreeNode -> typeExpression = prev;
             }
-            else if(prev -> expression.primitive == BOOLEAN) {
+            else if(prev -> typeVariable == PRIMITIVE && prev -> expression.primitive == BOOLEAN_TYPE) {
                 //error
                 printf("ERROR: %2d %25s %3s %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "|||", t->token->symbol, prev->expression.primitive, "***", "***", t -> depth, "invalid type for operator");
                 //set prev as error
                 prev -> typeVariable = ERROR;
                 prev -> rectArrayType = NOT_APPLICABLE;
                 prev -> expression.primitive = INTEGER_TYPE; 
-                //set prev as error
             }
             else if(compTypeExp(prev, head -> parseTreeNode -> children[1] -> typeExpression) == 0) {
                 //error
@@ -697,37 +773,37 @@ void handleAddLogicExpr(parseNode* t, typeExpressionTable T) {
                 prev -> typeVariable = ERROR;
                 prev -> rectArrayType = NOT_APPLICABLE;
                 prev -> expression.primitive = INTEGER_TYPE; 
-                //set prev as error
             }
-            else if ((head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive == BOOLEAN) {
+            else if (head -> parseTreeNode -> children[0] -> typeExpression -> typeVariable == PRIMITIVE && (head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive == BOOLEAN_TYPE) {
                //error 
                printf("ERROR: %2d %25s %3s %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "|||", t->token->symbol, prev->expression.primitive, "***", "***", t -> depth, "invalid type for operator");
                 //set prev as error
                 prev -> typeVariable = ERROR;
                 prev -> rectArrayType = NOT_APPLICABLE;
                 prev -> expression.primitive = INTEGER_TYPE; 
-               //set prev as error
             }
             else  {
                 head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[1] -> typeExpression;
-                prev = head -> parseTreeNode -> typeExpression;
+                prev -> expression = head -> parseTreeNode -> typeExpression -> expression;
+                prev -> rectArrayType = head -> parseTreeNode -> typeExpression -> rectArrayType;
+                prev -> typeVariable = head -> parseTreeNode -> typeExpression -> typeVariable;
             }
         }
         stack top = head;
         head = pop(head);
         free(top);
     }
-    if(prev -> expression.primitive != BOOLEAN) {
+    if(prev -> typeVariable == PRIMITIVE && prev -> expression.primitive == BOOLEAN_TYPE) {
         //error
-        printf("ERROR: %2d %25s %3s %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "|||", t->token->symbol, prev->expression.primitive, "***", "***", t -> depth, "invalid type for operator");
+        printf("ERROR: %2d %25s %3s %20s %2d %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "|||", t->token->symbol, prev->expression.primitive, "***", "***", t -> depth, "invalid type for operator");
     }
     else if(compTypeExp(prev, head -> parseTreeNode -> children[0] -> typeExpression) == 0) {
         //error
-        printf("ERROR: %2d %25s %3s %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "|||", t->token->symbol, prev->expression.primitive, "***", "***", t -> depth, "invalid type for operator");
+        printf("ERROR: %2d %25s %3s %20s %2d %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "|||", t->token->symbol, prev->expression.primitive, "***", "***", t -> depth, "type mismatch error");
     }
-    else if((head -> parseTreeNode -> children[0] -> typeExpression -> expression).primitive == BOOLEAN) {
+    else if(head -> parseTreeNode -> children[0] -> typeExpression -> typeVariable == PRIMITIVE && (head -> parseTreeNode -> children[0] -> typeExpression -> expression).primitive == BOOLEAN_TYPE) {
         //error
-        printf("ERROR: %2d %25s %3s %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "|||", t->token->symbol, prev->expression.primitive, "***", "***", t -> depth, "invalid type for operator");
+        printf("ERROR: %2d %25s %3s %20s %2d %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "|||", t->token->symbol, prev->expression.primitive, "***", "***", t -> depth, "invalid type for operator");
     }
     else {
         head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[0] -> typeExpression;
@@ -738,31 +814,10 @@ void handleAddLogicExpr(parseNode* t, typeExpressionTable T) {
 }
 
 void handleAndLogicExpr(parseNode* t, typeExpressionTable T) {
-    // handleAddLogicExpr(t -> children[0], T);
-    // if(t -> children[1] -> num_child == 1 || t -> children[0] -> typeExpression -> typeVariable == ERROR) {
-    //     t -> typeExpression = t -> children[1] -> typeExpression;
-    //     return;
-    // }
-    // if((t -> children[0] -> typeExpression -> expression).primitive != BOOLEAN) {
-    //     //error
-            
-    //     //return
-    // }
-    // parseNode* temp = t -> children[1]; // andLogicOptional
-    // while(temp -> num_child == 3) {
-    //     handleAddLogicExpr(temp -> children[2], T);
-    //     if((temp -> children[2] -> typeExpression -> expression).primitive != BOOLEAN) {
-    //         //error
-            
-    //         //return
-    //     }
-    //     temp = temp -> children[3];
-    // }
-    // set typeExpression as boolean
-
     handleAddLogicExpr(t -> children[0], T);
+    t -> token -> lineNumber = t -> children[0] -> token -> lineNumber;
     if(t -> children[1] -> num_child == 1 || t -> children[0] -> typeExpression -> typeVariable == ERROR) {
-        t -> typeExpression = t -> children[1] -> typeExpression;
+        t -> typeExpression = t -> children[0] -> typeExpression;
         return;
     }
     stack head = malloc(sizeof(struct parserStack));
@@ -778,27 +833,30 @@ void handleAndLogicExpr(parseNode* t, typeExpressionTable T) {
     }
     typeExpressionRow* prev = NULL;
     while(head -> parseTreeNode != t) {
-        handleAndLogicExpr(head -> parseTreeNode -> children[1], T);
+        handleAddLogicExpr(head -> parseTreeNode -> children[1], T);
         if(prev == NULL) {
             head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[1] -> typeExpression;
-            prev = head -> parseTreeNode -> typeExpression;
+            prev = (typeExpressionRow*)malloc(sizeof(typeExpressionRow));
+            prev -> expression = head -> parseTreeNode -> typeExpression -> expression;
+            prev -> rectArrayType = head -> parseTreeNode -> typeExpression -> rectArrayType;
+            prev -> typeVariable = head -> parseTreeNode -> typeExpression -> typeVariable;
         }
         else {
             if(prev -> typeVariable == ERROR) {
                 //Error propagation
                 head -> parseTreeNode -> typeExpression = prev;
             }
-            else if(prev -> expression.primitive != BOOLEAN_TYPE) {
+            else if(prev -> typeVariable != PRIMITIVE || prev -> expression.primitive != BOOLEAN_TYPE) {
                 //error
-                printf("ERROR: %2d %25s %3s %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "|||", t->token->symbol, prev->expression.primitive, "***", "***", t -> depth, "invalid type for operator");
+                printf("ERROR: %2d %25s %3s %20s %2d %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", "|||", t->token->symbol, prev->expression.primitive, "***", "***", t -> depth, "invalid type for operator");
                 //set prev as error
                 prev -> typeVariable = ERROR;
                 prev -> rectArrayType = NOT_APPLICABLE;
                 prev -> expression.primitive = INTEGER_TYPE; 
             }
-           else if ((head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive != BOOLEAN_TYPE) {
+           else if (head -> parseTreeNode -> children[0] -> typeExpression -> typeVariable != PRIMITIVE || (head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive != BOOLEAN_TYPE) {
                //error 
-               printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", head -> parseTreeNode -> children[1] ->token -> symbol, head -> parseTreeNode -> children[1] -> typeExpression -> expression.primitive, "***", "***", t -> depth, "invalid type for operator");
+               printf("ERROR: %2d %25s *** %20s %2d %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", head -> parseTreeNode -> children[1] ->token -> symbol, head -> parseTreeNode -> children[1] -> typeExpression -> expression.primitive, "***", "***", t -> depth, "invalid type for operator");
                //set prev as error
                prev -> typeVariable = ERROR;
                prev -> rectArrayType = NOT_APPLICABLE;
@@ -806,18 +864,20 @@ void handleAndLogicExpr(parseNode* t, typeExpressionTable T) {
            }
             else  {
                 head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[1] -> typeExpression;
-                prev = head -> parseTreeNode -> typeExpression;
+                prev -> expression = head -> parseTreeNode -> typeExpression -> expression;
+                prev -> rectArrayType = head -> parseTreeNode -> typeExpression -> rectArrayType;
+                prev -> typeVariable = head -> parseTreeNode -> typeExpression -> typeVariable;
             }
         }
         stack top = head;
         head = pop(head);
         free(top);
     }
-    if(prev -> expression.primitive != BOOLEAN_TYPE) {
+    if(prev -> typeVariable != PRIMITIVE || prev -> expression.primitive != BOOLEAN_TYPE) {
         //error
         printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, prev -> expression.primitive, "***", "***", t -> depth, "invalid type for operator");
     }
-    else if((head -> parseTreeNode -> children[0] -> typeExpression -> expression).primitive != BOOLEAN_TYPE) {
+    else if(head -> parseTreeNode -> children[0] -> typeExpression -> typeVariable != PRIMITIVE || (head -> parseTreeNode -> children[0] -> typeExpression -> expression).primitive != BOOLEAN_TYPE) {
         //error
         printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", head -> parseTreeNode -> children[0] -> token -> symbol, (head -> parseTreeNode -> children[0] -> typeExpression -> expression).primitive, "***", "***", t -> depth, "invalid type for operator");
     }
@@ -830,9 +890,11 @@ void handleAndLogicExpr(parseNode* t, typeExpressionTable T) {
 }
 
 void handleOrLogicExpr(parseNode* t, typeExpressionTable T) {
+    //t = orLogicExpr
     handleAndLogicExpr(t -> children[0], T);
+    t -> token -> lineNumber = t -> children[0] -> token -> lineNumber;
     if(t -> children[1] -> num_child == 1 || t -> children[0] -> typeExpression -> typeVariable == ERROR) {
-        t -> typeExpression = t -> children[1] -> typeExpression;
+        t -> typeExpression = t -> children[0] -> typeExpression;
         return;
     }
     stack head = malloc(sizeof(struct parserStack));
@@ -851,14 +913,17 @@ void handleOrLogicExpr(parseNode* t, typeExpressionTable T) {
         handleAndLogicExpr(head -> parseTreeNode -> children[1], T);
         if(prev == NULL) {
             head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[1] -> typeExpression;
-            prev = head -> parseTreeNode -> typeExpression;
+            prev = (typeExpressionRow*)malloc(sizeof(typeExpressionRow));
+            prev -> expression = head -> parseTreeNode -> typeExpression -> expression;
+            prev -> rectArrayType = head -> parseTreeNode -> typeExpression -> rectArrayType;
+            prev -> typeVariable = head -> parseTreeNode -> typeExpression -> typeVariable;
         }
         else {
             if(prev -> typeVariable == ERROR) {
                 //Error propagation
                 head -> parseTreeNode -> typeExpression = prev;
             }
-            else if(prev -> expression.primitive != BOOLEAN_TYPE) {
+            else if(prev -> typeVariable != PRIMITIVE || prev -> expression.primitive != BOOLEAN_TYPE) {
                 //error
                 printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, prev -> expression.primitive, "***", "***", t -> depth, "invalid type for operator");
                 //set prev as error
@@ -866,7 +931,7 @@ void handleOrLogicExpr(parseNode* t, typeExpressionTable T) {
                 prev -> rectArrayType = NOT_APPLICABLE;
                 prev -> expression.primitive = INTEGER_TYPE; 
             }
-           else if ((head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive != BOOLEAN_TYPE) {
+           else if (head -> parseTreeNode -> children[1] -> typeExpression -> typeVariable != PRIMITIVE || (head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive != BOOLEAN_TYPE) {
                 //error
                 printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", head -> parseTreeNode -> children[1]->token->symbol, (head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive, "***", "***", t -> depth, "invalid type for operator");
                 //set prev as error
@@ -876,17 +941,19 @@ void handleOrLogicExpr(parseNode* t, typeExpressionTable T) {
            }
             else  {
                 head -> parseTreeNode -> typeExpression = head -> parseTreeNode -> children[1] -> typeExpression;
-                prev = head -> parseTreeNode -> typeExpression;
+                prev -> expression = head -> parseTreeNode -> typeExpression -> expression;
+                prev -> rectArrayType = head -> parseTreeNode -> typeExpression -> rectArrayType;
+                prev -> typeVariable = head -> parseTreeNode -> typeExpression -> typeVariable;
             }
         }
         stack top = head;
         head = pop(head);
         free(top);
     }
-    if(prev -> expression.primitive != BOOLEAN_TYPE) {
-        
+    if(prev -> typeVariable != PRIMITIVE || prev -> expression.primitive != BOOLEAN_TYPE) {
+        printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", head -> parseTreeNode -> children[1]->token->symbol, (head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive, "***", "***", t -> depth, "invalid type for operator");
     }
-    else if((head -> parseTreeNode -> children[0] -> typeExpression -> expression).primitive != BOOLEAN_TYPE) {
+    else if(head -> parseTreeNode -> children[1] -> typeExpression -> typeVariable != PRIMITIVE || (head -> parseTreeNode -> children[0] -> typeExpression -> expression).primitive != BOOLEAN_TYPE) {
         //error
         printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", head -> parseTreeNode -> children[1]->token->symbol, (head -> parseTreeNode -> children[1] -> typeExpression -> expression).primitive, "***", "***", t -> depth, "invalid type for operator");
     }
@@ -902,9 +969,17 @@ void handleAssignmentStmt(parseNode* t, typeExpressionTable T) {
     // t -> children[2] expression
     // t - children[0] element
     handleElement(t -> children[0], T);
+    t -> token -> lineNumber = t -> children[0] -> token -> lineNumber;
     handleOrLogicExpr(t -> children[2] -> children[0], T);
     t -> children[2] -> typeExpression = t -> children[2] -> children[0] -> typeExpression;
-    if(compTypeExp(t -> children[0] -> typeExpression, t -> children[2] -> typeExpression) == 0) {
+    printf("\n\n");
+    printTypeExpression(t -> children[0] -> typeExpression);
+    printTypeExpression(t -> children[2] -> typeExpression);
+    printf("\n\n");
+    if(t -> children[2] -> typeExpression -> typeVariable == ERROR || t -> children[0] -> typeExpression -> typeVariable == ERROR) {   
+        t -> typeExpression = t -> children[2] -> typeExpression;
+    }
+    else if(compTypeExp(t -> children[0] -> typeExpression, t -> children[2] -> typeExpression) == 0) {
         //error
         printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->children[0]->token->symbol, t->children[0]->typeExpression->typeVariable, t->children[2]->token->symbol, t->children[2]->typeExpression->typeVariable, t -> depth, "type mismatch");
     }
@@ -918,19 +993,18 @@ void traverseParseTree(parseTree *t, typeExpressionTable T) {
         start -> stmts
     */
     // declarativeStmts
-    parseNode* temp = t -> children[0] -> children[0]; // this points to "declarativeStmts"
+    parseNode* temp = t -> children[3] -> children[0]; // this points to "declarativeStmts"
     while (temp -> num_child == 2) {
         //Cannot be epsilon
-        handleDeclarativeStmt(temp -> children[0], T);
+        handleDeclarativeStmt(temp -> children[0], T);        
         temp = temp -> children[1];
     }
-   //
-
-   // assignmentStmts
-    temp = t -> children[0] -> children[1]; // this points to "assignmentStmts"
+    
+    // assignmentStmts
+    temp = t -> children[3] -> children[1]; // this points to "assignmentStmts"
      while (temp -> num_child == 2) {
         //Cannot be epsilon
-        handleAssignmentStmt(temp -> children[0], T);
+        handleAssignmentStmt(temp -> children[0], T);   //assignmentStmt
         temp = temp -> children[1];
     }
    //

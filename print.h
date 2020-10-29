@@ -12,6 +12,8 @@
 #include "typeExpression.h"
 
 
+extern void printTypeExpression(typeExpressionRow* row);
+
 extern void printParseTree(parseTree* t);
 
 extern void printTypeExpressionTable(typeExpressionTable T);

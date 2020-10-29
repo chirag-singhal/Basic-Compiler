@@ -39,6 +39,7 @@ void main() {
             t = malloc(sizeof(struct _parseNode));
             createParseTree(t, s, G);
             T = malloc(sizeof(typeExpressionTableNode));
+            T -> symbol = NULL;
             traverseParseTree(t, T);
         }
         else if(option == 3) {

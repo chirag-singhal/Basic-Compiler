@@ -81,9 +81,11 @@ void printParseTree(parseTree* t) {
 }
 
 void printTypeExpressionTable(typeExpressionTable T) {
-    while(T -> next != NULL) {
-        printf("\n%20s ", T -> symbol);
+    printf("*** PRINT ***\n");
+    while(T != NULL) {
+        printf("%20s ", T -> symbol);
         printTypeExpression(T -> row);
+        printf("\n");
         T = T -> next;
     }
 }

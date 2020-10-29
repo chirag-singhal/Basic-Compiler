@@ -11,7 +11,6 @@
 
 #include "parsetree.h"
 
-
 typedef struct _typeExpressionTableNode {
     char* symbol;
     typeExpressionRow* row;
@@ -26,5 +25,7 @@ extern void push_typeExpTable(char* symbol, typeExpressionRow* row, typeExpressi
 extern typeExpressionRow* search_typeExpTable(char* symbol, typeExpressionTable T);
 
 extern void traverseParseTree( parseTree *t, typeExpressionTable T );
+
+#include "print.h"
 
 #endif // TYPEEXPRESSION_H

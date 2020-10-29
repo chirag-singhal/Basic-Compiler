@@ -236,8 +236,6 @@ void createParseTree(parseTree *t, tokenStream *s, grammar G) {
             stack top = st;
             st = pop(st);
 
-            // printf("%s\n", top -> parseTreeNode -> token -> symbol);
-            
             top -> parseTreeNode -> num_child = size;
             top -> parseTreeNode -> children = malloc(sizeof(struct _parseNode*) * size);
             top -> parseTreeNode -> grammar_rule_idx = next_rule;
