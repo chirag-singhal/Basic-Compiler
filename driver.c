@@ -12,13 +12,13 @@
 
 #define NUM_RULES 68
 
-void main() {
+void main(int argc, char *argv[]) {
     //int argc, char *argv[]
     grammar G = (struct production_rule*)malloc(sizeof(struct production_rule) * NUM_RULES);
     readGrammar("grammar.txt", G);
     
     tokenStream* s = (tokenStream*)malloc(sizeof(tokenStream));
-    tokeniseSourcecode("sourcecode.txt", s);   //argv[1]
+    tokeniseSourcecode(argv[1], s);   //argv[1]
 
     parseTree* t = NULL;
     typeExpressionTable T = NULL;
@@ -64,3 +64,5 @@ void main() {
         scanf("%d", &option);
     }
 }
+
+
