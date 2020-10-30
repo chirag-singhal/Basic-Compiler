@@ -22,6 +22,15 @@ char* getLexemesFromType(typeVariableEnum typeVariable) {
         return "ERROR";
 }
 
+char* getLexemeFromElementType(basicElementTypeEnum val) {
+    if (val == INTEGER_TYPE)
+        return "INTEGER";
+    else if (val == REAL_TYPE)
+        return "REAL";
+    else
+        return "BOOLEAN";
+}
+
 typeExpressionRow* search_typeExpTable(char* symbol, typeExpressionTable T) {
     while (T != NULL) {
         if (strcmp(T -> symbol, symbol) == 0)
@@ -174,7 +183,7 @@ void handleDeclarativeStmt(parseNode* t, typeExpressionTable T) {
                 typeExpressionRow* row = search_typeExpTable(temp -> children[3] -> children[0] -> sourceToken, T);
                 if (row == NULL || row -> typeVariable != PRIMITIVE || (row -> expression).primitive != INTEGER_TYPE) {
                     // error
-                    printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Declaration statement", t->token->symbol, row->typeVariable, "***", "***", t -> depth, "RA type mismatch");
+                    printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Declaration statement", t->token->symbol, getLexemesFromType(row->typeVariable), "***", "***", t -> depth, "RA type mismatch");
                 }
                 rectArr.ranges[numOfDim][1].isVarId = 1;
                 rectArr.ranges[numOfDim][1].value.varIdIndex = temp -> children[3] -> children[0] -> sourceToken;
@@ -610,7 +619,7 @@ void handleElement(parseNode* t, typeExpressionTable T) {
         }
         else {
             //error
-            printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, (t->typeExpression->expression).primitive, "***", "***", t -> depth, "no such element exists");
+            printf("ERROR: %2d %25s *** %20s %10s %20s %10s %3d %30s\n", t -> token -> lineNumber, "Assignment statement", t->token->symbol, getLexemeFromElementType((t->typeExpression->expression).primitive), "***", "***", t -> depth, "no such element exists");
             new_row -> typeVariable = ERROR;
             new_row -> rectArrayType = NOT_APPLICABLE;
             (new_row -> expression).primitive = INTEGER_TYPE;
