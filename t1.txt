@@ -1,0 +1,17 @@
+program ( )
+{
+	declare list of variables new d w e2 : integer ;
+	declare v1 : integer ;
+ 	declare list of variables a1 a2 : integer ;
+	declare list of variables b1 b2 b3 : boolean ;
+	declare list of variables c1 c2 : real ;
+	declare list of variables m1 m2 m3 : real ;    
+	new = d * e2 + w + 76875 ;
+	v1 = a1 - a2 * d ;		 
+	b1 = b2 &&& b3 ||| b1 ;         	 
+	c1 = c2 + c1 ;
+	c2 = a1 /  a2 ; 
+	b1 = c1 &&& d ;                
+	c1 = a1 * a2 ; 
+	m1 = m2 + a1 ;                 	
+}
