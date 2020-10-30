@@ -14,7 +14,7 @@
 #include <string.h>
 #include "grammar.h"
 
-#define NUM_TERMS 31
+#define NUM_TERMS 32
 #define NUM_NONTERMS 45
 
 

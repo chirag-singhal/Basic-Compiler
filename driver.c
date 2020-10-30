@@ -13,18 +13,19 @@
 #define NUM_RULES 68
 
 void main() {
+    //int argc, char *argv[]
     grammar G = (struct production_rule*)malloc(sizeof(struct production_rule) * NUM_RULES);
     readGrammar("grammar.txt", G);
     
     tokenStream* s = (tokenStream*)malloc(sizeof(tokenStream));
-    tokeniseSourcecode("sourcecode.txt", s);
+    tokeniseSourcecode("sourcecode.txt", s);   //argv[1]
 
     parseTree* t = NULL;
     typeExpressionTable T = NULL;
     
     int option = 0;
 
-    printf("Option 0: exit\nOption 1: Create parse tree\nOption 2: Traverse the parse tree to construct typeExpressionTable. Also print the type errors while traversing the parse tree and accessing the typeExpressionTable.\nOption 3: Print parse tree in the specified format\nOption 4: Print typeExpressionTable in the specified format.\n");
+    printf("Option 0: exit\nOption 1: Create parse tree\nOption 2: Traverse the parse tree to construct typeExpressionTable and print errors\nOption 3: Print parse tree\nOption 4: Print typeExpressionTable\n");
     printf("Choose an option to continue: ");
     scanf("%d", &option);
 
@@ -33,6 +34,7 @@ void main() {
             //create parse tree
             t = malloc(sizeof(struct _parseNode));
             createParseTree(t, s, G);
+            printf("Parse tree created SUCCESSFULLY!!\n");
         }
         else if(option == 2) {
             //traverse tree, make table and print errors
@@ -44,7 +46,7 @@ void main() {
         }
         else if(option == 3) {
             //print parse tree in given format
-             t = malloc(sizeof(struct _parseNode));
+            t = malloc(sizeof(struct _parseNode));
             createParseTree(t, s, G);
             printParseTree(t);
         }
@@ -57,7 +59,7 @@ void main() {
             printTypeExpressionTable(T);
         }
 
-        printf("Option 0: exit\nOption 1: Create parse tree\nOption 2: Traverse the parse tree to construct typeExpressionTable. Also print the type errors while traversing the parse tree and accessing the typeExpressionTable.\nOption 3: Print parse tree in the specified format\nOption 4: Print typeExpressionTable in the specified format.\n");
+        printf("\n\nOption 0: exit\nOption 1: Create parse tree\nOption 2: Traverse the parse tree to construct typeExpressionTable and print errors\nOption 3: Print parse tree\nOption 4: Print typeExpressionTable\n");
         printf("Choose an option to continue: ");
         scanf("%d", &option);
     }

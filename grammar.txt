@@ -1,4 +1,4 @@
-start PROGRAM OP_CP OCB stmts CCB
+start PROGRAM OP CP OCB stmts CCB
 stmts declarativeStmts assignmentStmts
 declarativeStmts declarativeStmt declarativeStmtsOptional
 declarativeStmtsOptional EPSILON
@@ -21,7 +21,7 @@ specificDeclarativePhrase rectArrayDeclarativePhrase
 specificDeclarativePhrase jaggedArrayDeclarativePhrase jaggedArrayInitialization
 primitiveDeclarativePhrase type SEMI_COLON
 rectArrayDeclarativePhrase ARRAY listDim OF INTEGER SEMI_COLON
-jaggedArrayDeclarativePhrase JAGGED ARRAY listDim listEmptyDim OF INTEGER SEMI_COLON
+jaggedArrayDeclarativePhrase JAGGED ARRAY OSB NUM DOUBLE_DOT NUM CSB listEmptyDim OF INTEGER SEMI_COLON
 listDim OSB idx DOUBLE_DOT idx CSB listDimOptional
 listDimOptional EPSILON
 listDimOptional OSB idx DOUBLE_DOT idx CSB listDimOptional

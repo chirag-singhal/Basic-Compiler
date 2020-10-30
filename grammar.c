@@ -14,7 +14,8 @@
 
 char* known_symbols[] = {
     "program",
-    "()",
+    "(",
+    ")",
     "{",
     "}",
     "declare",
@@ -45,7 +46,8 @@ char* known_symbols[] = {
 
 char* term_grammar[] = {
     "PROGRAM",
-    "OP_CP",
+    "OP",
+    "CP",
     "OCB",
     "CCB",
     "DECLARE",

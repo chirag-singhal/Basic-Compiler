@@ -16,7 +16,8 @@
 
 typedef enum {
     PROGRAM,    
-    OP_CP,
+    OP,
+    CP,
     OCB,
     CCB,
     DECLARE,
