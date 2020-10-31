@@ -19,10 +19,3 @@ Similarly, run_t2, run_t3, ..., run_t6
 ```
     make end
 ```
-
-#### Team Info
-
-* _Group Number:_ 56
-* Chirag Singhal (2018A7PS0219P)
-* Harshan Baskar (2018A7PS0166P)
-* Nitya Mangal   (2018A7PS0216P)
