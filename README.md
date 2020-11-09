@@ -1,12 +1,21 @@
-# Principles of Programming Language
+# Basic Compiler
 
-## Assignment - 1
+This is a basic example of a compiler for a language as described in the problem statement. It designs the grammar correctly incorporating all features and constructs defined in
+the language specification. The grammar is unambiguous in such a way that it produces only one parse tree for the given input source code. It implements - 
 
-**To compile the project :**
+    *   Grammar and grammar parser
+    *   Tokeniser
+    *   Lexer
+    *   Type expression table generator
+    *   Type errors generator
+    *   Parse Tree Generator
+
+
+
+**To compile the compiler :**
 ```
     make compile
 ```
-
 
 **To run separate testcases :**
 ```
